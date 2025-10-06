@@ -1441,6 +1441,9 @@
             
             // Update trade type filter
             updateTradeTypeFilterOptions(availableOptions.tradeTypes);
+            
+            // Ensure Color Mode options are always available (not constrained by other filters)
+            ensureColorModeAlwaysAvailable();
         }
 
         function updateYearFilterOptions(availableYears) {
@@ -1501,7 +1504,15 @@
         }
 
         function updateTransportFilterOptions(availableTransports) {
-            const transportBars = document.querySelectorAll('.filter-bar-item');
+            // Only select transport bars, not all filter-bar-items (which includes color mode)
+            const allControlGroups = document.querySelectorAll('.control-group');
+            let transportBars = [];
+            allControlGroups.forEach(group => {
+                const label = group.querySelector('label');
+                if (label && label.textContent.trim() === 'Transport') {
+                    transportBars = group.querySelectorAll('.filter-bar-item');
+                }
+            });
             transportBars.forEach(bar => {
                 if (!bar) return; // Safety check
                 
@@ -1611,6 +1622,23 @@
                 return (count / 1000).toFixed(1) + 'K';
             }
             return count.toString();
+        }
+
+        /**
+         * Ensure Color Mode options are always available (not constrained by other filters)
+         */
+        function ensureColorModeAlwaysAvailable() {
+            const allControlGroups = document.querySelectorAll('.control-group');
+            allControlGroups.forEach(group => {
+                const label = group.querySelector('label');
+                if (label && label.textContent.trim() === 'Color Mode') {
+                    const colorModeBars = group.querySelectorAll('.filter-bar-item');
+                    colorModeBars.forEach(bar => {
+                        bar.style.opacity = '1';
+                        bar.style.pointerEvents = 'auto';
+                    });
+                }
+            });
         }
 
         function filterAndUpdate() {
