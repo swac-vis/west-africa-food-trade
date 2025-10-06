@@ -1,0 +1,2513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>African Food Flows - Complete Visualization</title>
+    <script src="https://unpkg.com/deck.gl@latest/dist.min.js"></script>
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            overflow: hidden;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            background: #0a1929;
+        }
+
+        .header {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 10;
+            max-width: 350px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            color: #1a202c;
+            font-weight: 700;
+        }
+
+        .header .subtitle {
+            font-size: 0.85rem;
+            color: #718096;
+            line-height: 1.4;
+        }
+
+        .control-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            max-width: 320px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .control-panel h3 {
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+            color: #2d3748;
+            font-weight: 600;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        .control-group {
+            margin-bottom: 16px;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        select, input[type="range"] {
+            width: 100%;
+            padding: 8px 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            transition: border-color 0.2s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #4299e1;
+        }
+
+        input[type="range"] {
+            padding: 0;
+            height: 6px;
+            cursor: pointer;
+        }
+
+        /* 极简交互图表 */
+        .filter-chart {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 8px;
+            margin-bottom: 6px;
+        }
+
+        .filter-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .filter-bar-item {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            padding: 3px 5px;
+            border-radius: 3px;
+            background: white;
+            border: 1px solid transparent;
+        }
+
+        .filter-bar-item:hover {
+            background: #f1f3f4;
+            border-color: #dee2e6;
+        }
+
+        .filter-bar-item.active {
+            background: #007bff;
+            color: white;
+            border-color: #0056b3;
+        }
+
+        .filter-bar-label {
+            min-width: 70px;
+            font-size: 0.65rem;
+            font-weight: 500;
+        }
+
+        .bar-container {
+            flex: 1;
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 0 5px;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: #6c757d;
+            border-radius: 2px;
+            transition: width 0.2s ease;
+        }
+
+        .filter-bar-item.active .bar-fill {
+            background: white;
+        }
+
+        .bar-value {
+            font-size: 0.6rem;
+            font-weight: 600;
+            min-width: 30px;
+            text-align: right;
+            color: #6c757d;
+        }
+
+        .filter-bar-item.active .bar-value {
+            color: white;
+        }
+
+        /* 年份时间轴 */
+        .year-timeline {
+            display: flex;
+            gap: 3px;
+            margin-top: 6px;
+        }
+
+        .year-button {
+            flex: 1;
+            padding: 6px 4px;
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+        }
+
+        .year-button:hover {
+            border-color: #007bff;
+            background: #f8f9ff;
+        }
+
+        .year-button.active {
+            background: #007bff;
+            color: white;
+            border-color: #0056b3;
+        }
+
+        /* 商品网格 */
+        .commodity-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 3px;
+            margin-top: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .commodity-card {
+            padding: 4px 3px;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+        }
+
+        .commodity-card:hover {
+            border-color: #007bff;
+            background: #f8f9ff;
+        }
+
+        .commodity-card.active {
+            background: #007bff;
+            border-color: #0056b3;
+            color: white;
+        }
+
+        .commodity-name {
+            font-size: 0.6rem;
+            font-weight: 500;
+            margin-bottom: 1px;
+            line-height: 1.1;
+        }
+
+        .commodity-count {
+            font-size: 0.55rem;
+            opacity: 0.8;
+            line-height: 1;
+        }
+
+        /* 模式切换 */
+        .view-mode-toggle {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 12px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 6px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .mode-btn.active {
+            background: #495057;
+            color: white;
+            border-color: #343a40;
+        }
+
+        /* 统计图表样式 */
+        .stats-chart {
+            display: flex;
+            align-items: end;
+            gap: 2px;
+            height: 40px;
+            margin: 6px 0;
+            padding: 4px;
+            background: #f8f9fa;
+            border-radius: 3px;
+        }
+
+        .stat-bar {
+            flex: 1;
+            background: #6c757d;
+            border-radius: 2px 2px 0 0;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .stat-bar:hover {
+            background: #007bff;
+        }
+
+        .stat-bar.active {
+            background: #007bff;
+        }
+
+        .stat-bar-label {
+            position: absolute;
+            bottom: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.6rem;
+            color: #6c757d;
+            white-space: nowrap;
+        }
+
+        .stat-bar.active .stat-bar-label {
+            color: #007bff;
+            font-weight: 600;
+        }
+
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: #f7fafc;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2d3748;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #718096;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .legend {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 2px solid #edf2f7;
+        }
+
+        .legend-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .legend-line {
+            width: 35px;
+            height: 3px;
+            margin-right: 10px;
+            border-radius: 2px;
+        }
+
+        .legend-triangle {
+            width: 0;
+            height: 0;
+            margin-right: 10px;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+        }
+
+        .legend-triangle-up {
+            border-bottom: 14px solid;
+        }
+
+        .legend-triangle-down {
+            border-top: 14px solid;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px 60px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 1000;
+            text-align: center;
+        }
+
+        .loading-spinner {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.1rem;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .loading-subtext {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-top: 8px;
+        }
+
+        .tooltip {
+            position: absolute;
+            padding: 12px 16px;
+            background: rgba(26, 32, 44, 0.95);
+            color: white;
+            border-radius: 8px;
+            pointer-events: none;
+            z-index: 100;
+            font-size: 0.875rem;
+            max-width: 280px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            display: none;
+        }
+
+        .tooltip-title {
+            font-weight: 700;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+        }
+
+        .tooltip-item {
+            margin: 4px 0;
+            font-size: 0.85rem;
+        }
+
+        .tooltip-commodities {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            font-size: 0.8rem;
+        }
+
+        .range-value {
+            display: inline-block;
+            background: #4299e1;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-left: 8px;
+            font-weight: 600;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    
+    <div class="loading" id="loading">
+        <div class="loading-spinner">🌍</div>
+        <div class="loading-text">Loading African Food Flows</div>
+        <div class="loading-subtext">Preparing 80,762 trade records...</div>
+    </div>
+
+    <div class="header">
+        <h1>🌾 African Food Flows</h1>
+        <div class="subtitle">
+            Visualizing food trade across 19 African countries from 2013-2017. 
+            Complete dataset with 80,762 recorded flows.
+        </div>
+    </div>
+
+    <div class="control-panel" id="control-panel" style="display: none;">
+        <h3>Interactive Filters</h3>
+        
+        <!-- View Mode Toggle -->
+        <div class="view-mode-toggle">
+            <div class="mode-btn active" onclick="toggleFilterMode('interactive')">Chart</div>
+            <div class="mode-btn" onclick="toggleFilterMode('traditional')">List</div>
+        </div>
+
+        <!-- Interactive Mode (default) -->
+        <div id="interactiveMode">
+            <!-- Color Mode -->
+            <div class="control-group">
+                <label>Color Mode</label>
+                <div class="filter-bars">
+                    <div class="filter-bar-item active" onclick="selectColorMode(this, 'source_destination')">
+                        <span class="filter-bar-label">Source-Dest</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 100%"></div></div>
+                        <span class="bar-value">100%</span>
+                    </div>
+                    <div class="filter-bar-item" onclick="selectColorMode(this, 'rural_urban')">
+                        <span class="filter-bar-label">Rural-Urban</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 48%"></div></div>
+                        <span class="bar-value">48%</span>
+                    </div>
+                    <div class="filter-bar-item" onclick="selectColorMode(this, 'international')">
+                        <span class="filter-bar-label">Trade Type</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 7%"></div></div>
+                        <span class="bar-value">7%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rural-Urban Flow Pattern (dynamic) -->
+            <div class="control-group" id="ruralUrbanFilterGroup" style="display: none;">
+                <label>Flow Pattern</label>
+                <div class="stats-chart">
+                    <div class="stat-bar rural-urban-bar active" data-type="all" style="height: 100%" onclick="selectRuralUrbanStat(this, 'all')">
+                        <div class="stat-bar-label">All</div>
+                    </div>
+                    <div class="stat-bar rural-urban-bar" data-type="rural_to_urban" style="height: 48%" onclick="selectRuralUrbanStat(this, 'rural_to_urban')">
+                        <div class="stat-bar-label">R→U</div>
+                    </div>
+                    <div class="stat-bar rural-urban-bar" data-type="urban_to_rural" style="height: 28%" onclick="selectRuralUrbanStat(this, 'urban_to_rural')">
+                        <div class="stat-bar-label">U→R</div>
+                    </div>
+                    <div class="stat-bar rural-urban-bar" data-type="rural_to_rural" style="height: 17%" onclick="selectRuralUrbanStat(this, 'rural_to_rural')">
+                        <div class="stat-bar-label">R→R</div>
+                    </div>
+                    <div class="stat-bar rural-urban-bar" data-type="urban_to_urban" style="height: 7%" onclick="selectRuralUrbanStat(this, 'urban_to_urban')">
+                        <div class="stat-bar-label">U→U</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trade Type (dynamic) -->
+            <div class="control-group" id="tradeTypeFilterGroup" style="display: none;">
+                <label>Trade Type</label>
+                <div class="stats-chart">
+                    <div class="stat-bar trade-type-bar active" data-type="all" style="height: 100%" onclick="selectTradeTypeStat(this, 'all')">
+                        <div class="stat-bar-label">All</div>
+                    </div>
+                    <div class="stat-bar trade-type-bar" data-type="international" style="height: 7%" onclick="selectTradeTypeStat(this, 'international')">
+                        <div class="stat-bar-label">Intl</div>
+                    </div>
+                    <div class="stat-bar trade-type-bar" data-type="domestic" style="height: 93%" onclick="selectTradeTypeStat(this, 'domestic')">
+                        <div class="stat-bar-label">Domestic</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Year Distribution -->
+            <div class="control-group">
+                <label>Year Distribution</label>
+                <div class="stats-chart">
+                    <div class="stat-bar active" style="height: 100%" onclick="selectYearStat(this, 'all')">
+                        <div class="stat-bar-label">All</div>
+                    </div>
+                    <div class="stat-bar" style="height: 15%" onclick="selectYearStat(this, '2013')">
+                        <div class="stat-bar-label">2013</div>
+                    </div>
+                    <div class="stat-bar" style="height: 18%" onclick="selectYearStat(this, '2014')">
+                        <div class="stat-bar-label">2014</div>
+                    </div>
+                    <div class="stat-bar" style="height: 22%" onclick="selectYearStat(this, '2015')">
+                        <div class="stat-bar-label">2015</div>
+                    </div>
+                    <div class="stat-bar" style="height: 25%" onclick="selectYearStat(this, '2016')">
+                        <div class="stat-bar-label">2016</div>
+                    </div>
+                    <div class="stat-bar" style="height: 20%" onclick="selectYearStat(this, '2017')">
+                        <div class="stat-bar-label">2017</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Commodities -->
+            <div class="control-group">
+                <label>Commodities</label>
+                <div class="commodity-grid">
+                    <div class="commodity-card active" onclick="selectCommodity(this, 'all')">
+                        <div class="commodity-name">All</div>
+                        <div class="commodity-count">80.7K</div>
+                    </div>
+                    <div class="commodity-card" onclick="selectCommodity(this, 'maize')">
+                        <div class="commodity-name">Maize</div>
+                        <div class="commodity-count">18.2K</div>
+                    </div>
+                    <div class="commodity-card" onclick="selectCommodity(this, 'rice')">
+                        <div class="commodity-name">Rice</div>
+                        <div class="commodity-count">12.4K</div>
+                    </div>
+                    <div class="commodity-card" onclick="selectCommodity(this, 'onion')">
+                        <div class="commodity-name">Onion</div>
+                        <div class="commodity-count">8.9K</div>
+                    </div>
+                    <div class="commodity-card" onclick="selectCommodity(this, 'sheep')">
+                        <div class="commodity-name">Sheep</div>
+                        <div class="commodity-count">6.7K</div>
+                    </div>
+                    <div class="commodity-card" onclick="selectCommodity(this, 'yam')">
+                        <div class="commodity-name">Yam</div>
+                        <div class="commodity-count">5.2K</div>
+                    </div>
+                    <div class="commodity-card" onclick="selectCommodity(this, 'potato')">
+                        <div class="commodity-name">Potato</div>
+                        <div class="commodity-count">4.8K</div>
+                    </div>
+                    <div class="commodity-card" onclick="selectCommodity(this, 'groundnut')">
+                        <div class="commodity-name">Groundnut</div>
+                        <div class="commodity-count">4.1K</div>
+                    </div>
+                    <div class="commodity-card" onclick="selectCommodity(this, 'tomato')">
+                        <div class="commodity-name">Tomato</div>
+                        <div class="commodity-count">3.9K</div>
+                    </div>
+                    <div class="commodity-card" onclick="selectCommodity(this, 'chilli_pepper')">
+                        <div class="commodity-name">Chilli Pepper</div>
+                        <div class="commodity-count">3.2K</div>
+                    </div>
+                    <div class="commodity-card" onclick="selectCommodity(this, 'plantain')">
+                        <div class="commodity-name">Plantain</div>
+                        <div class="commodity-count">2.8K</div>
+                    </div>
+                    <div class="commodity-card" onclick="selectCommodity(this, 'cowpea')">
+                        <div class="commodity-name">Cowpea</div>
+                        <div class="commodity-count">2.5K</div>
+                    </div>
+                    <div class="commodity-card" onclick="selectCommodity(this, 'soybean')">
+                        <div class="commodity-name">Soybean</div>
+                        <div class="commodity-count">2.1K</div>
+                    </div>
+                    <div class="commodity-card" onclick="selectCommodity(this, 'millet')">
+                        <div class="commodity-name">Millet</div>
+                        <div class="commodity-count">1.8K</div>
+                    </div>
+                    <div class="commodity-card" onclick="selectCommodity(this, 'eggplant')">
+                        <div class="commodity-name">Eggplant</div>
+                        <div class="commodity-count">1.5K</div>
+                    </div>
+                    <div class="commodity-card" onclick="selectCommodity(this, 'fish')">
+                        <div class="commodity-name">Fish</div>
+                        <div class="commodity-count">1.2K</div>
+                    </div>
+                    <div class="commodity-card" onclick="selectCommodity(this, 'bean')">
+                        <div class="commodity-name">Bean</div>
+                        <div class="commodity-count">1.0K</div>
+                    </div>
+                    <div class="commodity-card" onclick="selectCommodity(this, 'okra')">
+                        <div class="commodity-name">Okra</div>
+                        <div class="commodity-count">0.8K</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transport Modes -->
+            <div class="control-group">
+                <label>Transport</label>
+                <div class="filter-bars">
+                    <div class="filter-bar-item active" onclick="selectTransport(this, 'all')">
+                        <span class="filter-bar-label">All Modes</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 100%"></div></div>
+                        <span class="bar-value">100%</span>
+                    </div>
+                    <div class="filter-bar-item" onclick="selectTransport(this, 'Truck')">
+                        <span class="filter-bar-label">Truck</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 45%"></div></div>
+                        <span class="bar-value">45%</span>
+                    </div>
+                    <div class="filter-bar-item" onclick="selectTransport(this, 'Articulator')">
+                        <span class="filter-bar-label">Articulator</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 35%"></div></div>
+                        <span class="bar-value">35%</span>
+                    </div>
+                    <div class="filter-bar-item" onclick="selectTransport(this, 'Passenger Car')">
+                        <span class="filter-bar-label">Passenger Car</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 12%"></div></div>
+                        <span class="bar-value">12%</span>
+                    </div>
+                    <div class="filter-bar-item" onclick="selectTransport(this, 'Taximoto (motorking)')">
+                        <span class="filter-bar-label">Taximoto</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 5%"></div></div>
+                        <span class="bar-value">5%</span>
+                    </div>
+                    <div class="filter-bar-item" onclick="selectTransport(this, 'Motorbike')">
+                        <span class="filter-bar-label">Motorbike</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 3%"></div></div>
+                        <span class="bar-value">3%</span>
+                    </div>
+                    <div class="filter-bar-item" onclick="selectTransport(this, 'Taxi')">
+                        <span class="filter-bar-label">Taxi</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 2%"></div></div>
+                        <span class="bar-value">2%</span>
+                    </div>
+                    <div class="filter-bar-item" onclick="selectTransport(this, 'Handtruck')">
+                        <span class="filter-bar-label">Handtruck</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 1.5%"></div></div>
+                        <span class="bar-value">1.5%</span>
+                    </div>
+                    <div class="filter-bar-item" onclick="selectTransport(this, 'Personal car')">
+                        <span class="filter-bar-label">Personal Car</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 1%"></div></div>
+                        <span class="bar-value">1%</span>
+                    </div>
+                    <div class="filter-bar-item" onclick="selectTransport(this, 'Bicycle')">
+                        <span class="filter-bar-label">Bicycle</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 0.8%"></div></div>
+                        <span class="bar-value">0.8%</span>
+                    </div>
+                    <div class="filter-bar-item" onclick="selectTransport(this, 'Boat/ferry')">
+                        <span class="filter-bar-label">Boat/Ferry</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 0.5%"></div></div>
+                        <span class="bar-value">0.5%</span>
+                    </div>
+                    <div class="filter-bar-item" onclick="selectTransport(this, 'Donkey cart')">
+                        <span class="filter-bar-label">Donkey Cart</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 0.4%"></div></div>
+                        <span class="bar-value">0.4%</span>
+                    </div>
+                    <div class="filter-bar-item" onclick="selectTransport(this, 'Tanker')">
+                        <span class="filter-bar-label">Tanker</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 0.3%"></div></div>
+                        <span class="bar-value">0.3%</span>
+                    </div>
+                    <div class="filter-bar-item" onclick="selectTransport(this, 'Rail')">
+                        <span class="filter-bar-label">Rail</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 0.2%"></div></div>
+                        <span class="bar-value">0.2%</span>
+                    </div>
+                    <div class="filter-bar-item" onclick="selectTransport(this, 'Plane')">
+                        <span class="filter-bar-label">Plane</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 0.1%"></div></div>
+                        <span class="bar-value">0.1%</span>
+                    </div>
+                    <div class="filter-bar-item" onclick="selectTransport(this, 'Other')">
+                        <span class="filter-bar-label">Other</span>
+                        <div class="bar-container"><div class="bar-fill" style="width: 0.5%"></div></div>
+                        <span class="bar-value">0.5%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Route Filter -->
+            <div class="control-group">
+                <label>Route Filter</label>
+                <div class="stats-chart">
+                    <div class="stat-bar active" style="height: 100%" onclick="selectRouteFilterStat(this, 'all')">
+                        <div class="stat-bar-label">All</div>
+                    </div>
+                    <div class="stat-bar" style="height: 35%" onclick="selectRouteFilterStat(this, 'major')">
+                        <div class="stat-bar-label">Major</div>
+                    </div>
+                    <div class="stat-bar" style="height: 1%" onclick="selectRouteFilterStat(this, 'top100')">
+                        <div class="stat-bar-label">Top100</div>
+                    </div>
+                    <div class="stat-bar" style="height: 80%" onclick="selectRouteFilterStat(this, 'heatmap')">
+                        <div class="stat-bar-label">Heatmap</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Traditional Mode (hidden by default) -->
+        <div id="traditionalMode" style="display: none;">
+        <div class="control-group">
+            <label>Route Filter</label>
+            <select id="routeFilter">
+                <option value="all" selected>All Routes (complete data)</option>
+                <option value="major">Major Routes (flows ≥ 10)</option>
+                <option value="top100">Top 100 (busiest)</option>
+                <option value="heatmap">Heatmap (aggregated)</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>🎨 Color Mode</label>
+            <select id="colorModeSelect">
+                <option value="source_destination" selected>Source-Destination</option>
+                <option value="rural_urban">Rural-Urban Pattern</option>
+                <option value="international">International-Domestic</option>
+            </select>
+        </div>
+
+            <div class="control-group">
+                <label>Year</label>
+                <select id="yearFilter">
+                    <option value="all" selected>All Years</option>
+                    <option value="2013">2013</option>
+                    <option value="2014">2014</option>
+                    <option value="2015">2015</option>
+                    <option value="2016">2016</option>
+                    <option value="2017">2017</option>
+            </select>
+        </div>
+
+            <div class="control-group">
+                <label>Commodity</label>
+                <select id="commodityFilter">
+                    <option value="all" selected>All Commodities</option>
+                    <option value="maize">Maize</option>
+                    <option value="rice">Rice</option>
+                    <option value="onion">Onion</option>
+                    <option value="sheep">Sheep</option>
+                    <option value="yam">Yam</option>
+                    <option value="potato">Potato</option>
+                    <option value="groundnut">Groundnut</option>
+                    <option value="tomato">Tomato</option>
+                    <option value="chilli_pepper">Chilli Pepper</option>
+                    <option value="plantain">Plantain</option>
+                    <option value="cowpea">Cowpea</option>
+                    <option value="soybean">Soybean</option>
+                    <option value="millet">Millet</option>
+                    <option value="eggplant">Eggplant</option>
+                    <option value="fish">Fish</option>
+                    <option value="bean">Bean</option>
+                    <option value="okra">Okra</option>
+                </select>
+            </div>
+
+        <div class="control-group">
+            <label>Transportation Mode</label>
+            <select id="transportFilter">
+                <option value="all" selected>All Modes</option>
+                <option value="Truck">Truck</option>
+                <option value="Articulator">Articulator</option>
+                <option value="Passenger Car">Passenger Car</option>
+                <option value="Taximoto (motorking)">Taximoto (motorking)</option>
+                <option value="Motorbike">Motorbike</option>
+                <option value="Taxi">Taxi</option>
+                <option value="Handtruck">Handtruck</option>
+                <option value="Personal car">Personal car</option>
+                <option value="Bicycle">Bicycle</option>
+                <option value="Boat/ferry">Boat/ferry</option>
+                <option value="Donkey cart">Donkey cart</option>
+                <option value="Tanker">Tanker</option>
+                <option value="Rail">Rail</option>
+                <option value="Plane">Plane</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+            <div class="control-group">
+                <label>🏘️ Rural-Urban Pattern</label>
+                <select id="ruralUrbanFilter">
+                    <option value="all" selected>All Flow Types</option>
+                    <option value="rural_to_urban">🏘️→🏙️ Rural → Urban</option>
+                    <option value="urban_to_rural">🏙️→🏘️ Urban → Rural</option>
+                    <option value="rural_to_rural">🏘️→🏘️ Rural → Rural</option>
+                    <option value="urban_to_urban">🏙️→🏙️ Urban → Urban</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Trade Type</label>
+                <select id="tradeTypeFilter">
+                    <option value="all" selected>All Trades</option>
+                    <option value="international">🌐 International</option>
+                    <option value="domestic">🏠 Domestic</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>
+                Arc Thickness
+                <span class="range-value" id="arcWidthValue">0.5</span>
+            </label>
+            <input type="range" id="arcWidth" min="0.1" max="8" value="0.5" step="0.1">
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="showPoints" checked>
+            <label for="showPoints">Show location points</label>
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="showViaCity">
+            <label for="showViaCity">Show transit cities (via routes)</label>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="visibleRoutes">-</div>
+                <div class="stat-label" id="routesLabel">Routes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalFlows">-</div>
+                <div class="stat-label">Flows</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="intlFlows">-</div>
+                <div class="stat-label">International</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgDistance">-</div>
+                <div class="stat-label" id="distanceLabel">Avg Distance</div>
+            </div>
+        </div>
+
+        <div class="legend" id="legendRuralUrban" style="display: none;">
+            <div class="legend-title">Point Encoding</div>
+            <div class="legend-item">
+                <div class="legend-triangle legend-triangle-up" style="border-bottom-color: #FBE819;"></div>
+                <span>Urban Source</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-triangle legend-triangle-down" style="border-top-color: #FBE819;"></div>
+                <span>Urban Destination</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-triangle legend-triangle-up" style="border-bottom-color: #2A50EA;"></div>
+                <span>Rural Source</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-triangle legend-triangle-down" style="border-top-color: #2A50EA;"></div>
+                <span>Rural Destination</span>
+            </div>
+        </div>
+
+        <div class="legend" id="legendInternational" style="display: none;">
+            <div class="legend-title">Flow Types (Arc Color)</div>
+            <div class="legend-item">
+                <div class="legend-line" style="background: #e53e3e;"></div>
+                <span>🌐 International (6.9%)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-line" style="background: #3182ce;"></div>
+                <span>🏠 Domestic (93.1%)</span>
+            </div>
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #edf2f7;">
+                <div class="legend-title" style="margin-bottom: 8px;">Point Direction</div>
+                <div class="legend-item">
+                    <div class="legend-triangle legend-triangle-up" style="border-bottom-color: #888;"></div>
+                    <span style="font-size: 0.85rem;">Source</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-triangle legend-triangle-down" style="border-top-color: #888;"></div>
+                    <span style="font-size: 0.85rem;">Destination</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="legend" id="legendSourceDest">
+            <div class="legend-title">Point Type</div>
+            <div class="legend-item">
+                <div class="legend-triangle legend-triangle-up" style="border-bottom-color: #10b981;"></div>
+                <span>Source (origin points)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-triangle legend-triangle-down" style="border-top-color: #ef4444;"></div>
+                <span>Destination (arrival points)</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+
+    <script>
+        const {DeckGL, ArcLayer, ScatterplotLayer, HeatmapLayer, IconLayer} = deck;
+
+        let allData = null; // Single data source loaded once
+        let currentDataSource = 'all';
+        let filteredRoutes = [];
+        let deckgl = null;
+        let colorMode = 'source_destination'; // Color mode: 'source_destination', 'rural_urban', or 'international'
+        let hoveredRoute = null; // Currently hovered route
+        let selectedRoute = null; // Currently selected (clicked) route
+        
+
+        // Single data file - all filtering done client-side for efficiency
+        const SINGLE_DATA_FILE = 'food_flows_all_routes_rural_urban.json';
+
+        async function init() {
+            try {
+                // Load all data once (21MB)
+                await loadAllData();
+                
+                // Filter initial data (all routes)
+                filteredRoutes = getFilteredDataBySource('all');
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('control-panel').style.display = 'block';
+
+                initDeckGL();
+                updateStats();  // Update statistics on initial load
+                updateVisualization();
+                setupEventListeners();
+                
+                // Initialize filter constraints
+                updateFilterOptions({ year: 'all', commodity: 'all', transport: 'all', ruralUrban: 'all', tradeType: 'all' });
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('loading').innerHTML = 
+                    '<div class="loading-text">❌ Error loading data</div><div class="loading-subtext">' + error.message + '</div>';
+            }
+        }
+
+        // Load all data once and cache it
+        async function loadAllData() {
+            if (allData) return allData; // Already loaded
+            
+            const response = await fetch(SINGLE_DATA_FILE);
+            allData = await response.json();
+            return allData;
+        }
+
+        /**
+         * Generate heatmap data from routes by aggregating to grid
+         * Grid size: 0.5 degrees (approximately 55km at equator)
+         */
+        function generateHeatmapFromRoutes(routes) {
+            const gridSize = 0.5;
+            const gridMap = new Map();
+            
+            // Helper function to round coordinate to grid
+            const roundToGrid = (coord) => Math.round(coord / gridSize) * gridSize;
+            
+            // Aggregate all source and destination points
+            routes.forEach(route => {
+                // Add source point
+                if (route.source && route.source.coordinates) {
+                    const [lon, lat] = route.source.coordinates;
+                    const gridKey = `${roundToGrid(lon)},${roundToGrid(lat)}`;
+                    
+                    if (!gridMap.has(gridKey)) {
+                        gridMap.set(gridKey, {
+                            coordinates: [roundToGrid(lon), roundToGrid(lat)],
+                            weight: 0,
+                            quantity: 0,
+                            type: 'source'
+                        });
+                    }
+                    const grid = gridMap.get(gridKey);
+                    grid.weight += route.flows || 1;
+                    grid.quantity += route.quantity || 0;
+                }
+                
+                // Add destination point
+                if (route.destination && route.destination.coordinates) {
+                    const [lon, lat] = route.destination.coordinates;
+                    const gridKey = `${roundToGrid(lon)},${roundToGrid(lat)}`;
+                    
+                    if (!gridMap.has(gridKey)) {
+                        gridMap.set(gridKey, {
+                            coordinates: [roundToGrid(lon), roundToGrid(lat)],
+                            weight: 0,
+                            quantity: 0,
+                            type: 'destination'
+                        });
+                    }
+                    const grid = gridMap.get(gridKey);
+                    grid.weight += route.flows || 1;
+                    grid.quantity += route.quantity || 0;
+                }
+            });
+            
+            return Array.from(gridMap.values());
+        }
+
+        // Filter data based on source type (client-side)
+        function getFilteredDataBySource(source) {
+            if (!allData) return [];
+            
+            if (source === 'heatmap') {
+                // Generate heatmap from all data dynamically
+                return generateHeatmapFromRoutes(allData);
+            } else if (source === 'all') {
+                return allData;
+            } else if (source === 'major') {
+                return allData.filter(d => (d.flows || 0) >= 10);
+            } else if (source === 'top100') {
+                const sorted = [...allData].sort((a, b) => (b.flows || 0) - (a.flows || 0));
+                return sorted.slice(0, 100);
+            }
+            
+            return allData;
+        }
+
+        function initDeckGL() {
+            deckgl = new DeckGL({
+                container: 'map',
+                mapStyle: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+                initialViewState: {
+                    longitude: 3,
+                    latitude: 9,
+                    zoom: 4.8,
+                    pitch: 35,
+                    bearing: 0
+                },
+                controller: true,
+                layers: []
+            });
+        }
+
+        async function switchDataSource(source) {
+            // Show loading
+            const loadingEl = document.getElementById('loading');
+            loadingEl.style.display = 'block';
+            loadingEl.querySelector('.loading-text').textContent = 'Filtering data...';
+            loadingEl.querySelector('.loading-subtext').textContent = `Preparing ${source} routes`;
+
+            try {
+                // Load all data if not yet loaded
+                if (!allData) {
+                    loadingEl.querySelector('.loading-text').textContent = 'Loading data...';
+                    loadingEl.querySelector('.loading-subtext').textContent = 'First-time loading (21MB)';
+                    await loadAllData();
+                }
+
+                if (source === 'heatmap') {
+                    loadingEl.querySelector('.loading-text').textContent = 'Generating heatmap...';
+                    loadingEl.querySelector('.loading-subtext').textContent = 'Aggregating to grid';
+                }
+
+                currentDataSource = source;
+                filterAndUpdate();
+
+                loadingEl.style.display = 'none';
+
+            } catch (error) {
+                console.error('Error switching data:', error);
+                loadingEl.querySelector('.loading-text').textContent = '❌ Error loading data';
+            }
+        }
+
+        async function switchToCommodity(commodity) {
+            // Don't switch data source, just trigger filtering
+            // This allows filtering commodities within current data source (including rural-urban data)
+            filterAndUpdate();
+        }
+
+        function switchColorMode(mode) {
+            colorMode = mode;
+            
+            // Toggle filter visibility and legends
+            if (mode === 'rural_urban') {
+                document.getElementById('ruralUrbanFilterGroup').style.display = 'block';
+                document.getElementById('tradeTypeFilterGroup').style.display = 'none';
+                document.getElementById('legendRuralUrban').style.display = 'block';
+                document.getElementById('legendInternational').style.display = 'none';
+                document.getElementById('legendSourceDest').style.display = 'none';
+            } else if (mode === 'source_destination') {
+                document.getElementById('ruralUrbanFilterGroup').style.display = 'none';
+                document.getElementById('tradeTypeFilterGroup').style.display = 'none';
+                document.getElementById('legendRuralUrban').style.display = 'none';
+                document.getElementById('legendInternational').style.display = 'none';
+                document.getElementById('legendSourceDest').style.display = 'block';
+            } else if (mode === 'international') {
+                document.getElementById('ruralUrbanFilterGroup').style.display = 'none';
+                document.getElementById('tradeTypeFilterGroup').style.display = 'block';
+                document.getElementById('legendRuralUrban').style.display = 'none';
+                document.getElementById('legendInternational').style.display = 'block';
+                document.getElementById('legendSourceDest').style.display = 'none';
+            }
+            
+            // Refresh visualization with new colors
+            filterAndUpdate();
+        }
+
+        /**
+         * Get precise display data for a route based on current filters
+         * Uses by_year, by_transport, by_commodity for accurate filtering
+         */
+        function getRouteDisplayData(route, filters) {
+            // Start with full route data
+            let displayData = {
+                flows: route.flows,
+                commodities: route.commodities,
+                years: route.years,
+                transport_modes: route.transport_modes,
+                main_transport: route.main_transport
+            };
+
+            // Apply year filter using by_year breakdown
+            if (filters.year && filters.year !== 'all' && route.by_year) {
+                const yearData = route.by_year[filters.year];
+                if (!yearData) return null; // Route has no data for this year
+                
+                displayData.flows = yearData.flows;
+                displayData.commodities = yearData.commodities;
+                displayData.transport_modes = yearData.transport_modes;
+                
+                // Update main transport for this year
+                const modes = Object.entries(yearData.transport_modes);
+                if (modes.length > 0) {
+                    displayData.main_transport = modes.reduce((a, b) => a[1] > b[1] ? a : b)[0];
+                }
+            }
+
+            // Apply transport filter using by_transport breakdown
+            if (filters.transport && filters.transport !== 'all' && route.by_transport) {
+                const transportData = route.by_transport[filters.transport];
+                if (!transportData) return null; // Route doesn't use this transport
+                
+                // If year filter was already applied, do intersection
+                if (filters.year && filters.year !== 'all') {
+                    const yearData = route.by_year[filters.year];
+                    if (yearData && yearData.transport_modes[filters.transport]) {
+                        displayData.flows = yearData.transport_modes[filters.transport];
+                        displayData.commodities = transportData.commodities; // Approximate
+                    } else {
+                        return null; // This transport not used in this year
+                    }
+                } else {
+                    displayData.flows = transportData.flows;
+                    displayData.commodities = transportData.commodities;
+                    displayData.years = transportData.years;
+                }
+                displayData.main_transport = filters.transport;
+            }
+
+            // Apply commodity filter using by_commodity breakdown
+            if (filters.commodity && filters.commodity !== 'all' && route.by_commodity) {
+                // Find matching commodity (case insensitive)
+                const commodityMap = {
+                    'maize': 'Maize',
+                    'rice': 'Rice',
+                    'onion': 'Onion',
+                    'sheep': 'Sheep',
+                    'yam': 'Yam',
+                    'potato': 'Potato',
+                    'groundnut': 'Groundnut',
+                    'tomato': 'Tomato',
+                    'chilli_pepper': 'Chilli pepper',
+                    'plantain': 'Plantain',
+                    'cowpea': 'Cowpea',
+                    'soybean': 'Soybean',
+                    'millet': 'Millet',
+                    'eggplant': 'Eggplant',
+                    'fish': 'Fish',
+                    'bean': 'Bean',
+                    'okra': 'Okra'
+                };
+                
+                const targetCommodity = commodityMap[filters.commodity];
+                const commodityData = route.by_commodity[targetCommodity];
+                
+                if (!commodityData) return null; // Route doesn't transport this commodity
+                
+                // For commodity filter, we show only this commodity
+                displayData.commodities = { [targetCommodity]: commodityData.flows };
+                displayData.flows = commodityData.flows;
+                displayData.transport_modes = commodityData.transport_modes;
+                displayData.years = commodityData.years;
+            }
+
+            return displayData;
+        }
+
+        /**
+         * Update filter options based on current selections (filter constraints)
+         * This ensures filters work together - selecting one filter constrains others
+         */
+        function updateFilterOptions(currentFilters) {
+            // Safety check - ensure DOM elements exist
+            if (!document.querySelector('.commodity-card') || !document.querySelector('.filter-bar-item')) {
+                console.log('DOM not ready for filter constraints, skipping...');
+                return;
+            }
+            
+            const { year, commodity, transport, ruralUrban, tradeType } = currentFilters;
+            
+            // Get all routes that match current filters (for calculating available options)
+            let filteredRoutes = allData.filter(route => {
+                // Apply rural-urban filter
+                if (colorMode === 'rural_urban' && ruralUrban !== 'all' && route.flow_type !== ruralUrban) {
+                    return false;
+                }
+                
+                // Apply international-domestic filter
+                if (colorMode === 'international') {
+                    if (tradeType === 'international' && !route.is_international) return false;
+                    if (tradeType === 'domestic' && route.is_international) return false;
+                }
+                
+                // Apply commodity filter
+                if (commodity !== 'all' && route.by_commodity) {
+                    const commodityMap = {
+                        'maize': 'Maize', 'rice': 'Rice', 'onion': 'Onion', 'sheep': 'Sheep',
+                        'yam': 'Yam', 'potato': 'Potato', 'groundnut': 'Groundnut', 'tomato': 'Tomato',
+                        'chilli_pepper': 'Chilli pepper', 'plantain': 'Plantain', 'cowpea': 'Cowpea',
+                        'soybean': 'Soybean', 'millet': 'Millet', 'eggplant': 'Eggplant',
+                        'fish': 'Fish', 'bean': 'Bean', 'okra': 'Okra'
+                    };
+                    const targetCommodity = commodityMap[commodity];
+                    if (!route.by_commodity[targetCommodity]) return false;
+                }
+                
+                // Apply transport filter
+                if (transport !== 'all' && route.by_transport) {
+                    if (!route.by_transport[transport]) return false;
+                }
+                
+                // Apply year filter
+                if (year !== 'all' && route.by_year) {
+                    if (!route.by_year[year]) return false;
+                }
+                
+                return true;
+            });
+            
+            // Calculate available options for each filter
+            const availableOptions = calculateAvailableOptions(filteredRoutes);
+            
+            // Update interactive filter UI
+            updateInteractiveFilterOptions(availableOptions, currentFilters);
+        }
+
+        /**
+         * Calculate available options based on filtered routes
+         */
+        function calculateAvailableOptions(routes) {
+            const options = {
+                years: new Set(),
+                commodities: new Map(),
+                transports: new Map(),
+                ruralUrban: new Map(),
+                tradeTypes: new Map()
+            };
+            
+            routes.forEach(route => {
+                // Years
+                if (route.by_year) {
+                    Object.keys(route.by_year).forEach(year => {
+                        options.years.add(year);
+                    });
+                }
+                
+                // Commodities
+                if (route.by_commodity) {
+                    Object.entries(route.by_commodity).forEach(([commodity, data]) => {
+                        const count = options.commodities.get(commodity) || 0;
+                        options.commodities.set(commodity, count + data.flows);
+                    });
+                }
+                
+                // Transport modes
+                if (route.by_transport) {
+                    Object.entries(route.by_transport).forEach(([transport, data]) => {
+                        const count = options.transports.get(transport) || 0;
+                        options.transports.set(transport, count + data.flows);
+                    });
+                }
+                
+                // Rural-Urban patterns
+                const flowType = route.flow_type;
+                if (flowType) {
+                    const count = options.ruralUrban.get(flowType) || 0;
+                    options.ruralUrban.set(flowType, count + route.flows);
+                }
+                
+                // Trade types
+                const tradeType = route.is_international ? 'international' : 'domestic';
+                const tradeCount = options.tradeTypes.get(tradeType) || 0;
+                options.tradeTypes.set(tradeType, tradeCount + route.flows);
+            });
+            
+            return options;
+        }
+
+        /**
+         * Update interactive filter options in the UI
+         */
+        function updateInteractiveFilterOptions(availableOptions, currentFilters) {
+            // Update year filter
+            updateYearFilterOptions(availableOptions.years);
+            
+            // Update commodity filter
+            updateCommodityFilterOptions(availableOptions.commodities);
+            
+            // Update transport filter
+            updateTransportFilterOptions(availableOptions.transports);
+            
+            // Update rural-urban filter
+            updateRuralUrbanFilterOptions(availableOptions.ruralUrban);
+            
+            // Update trade type filter
+            updateTradeTypeFilterOptions(availableOptions.tradeTypes);
+        }
+
+        function updateYearFilterOptions(availableYears) {
+            const yearButtons = document.querySelectorAll('.year-button');
+            yearButtons.forEach(button => {
+                if (!button) return; // Safety check
+                
+                const year = button.textContent.trim();
+                if (year === 'All' || availableYears.has(year)) {
+                    button.style.opacity = '1';
+                    button.style.pointerEvents = 'auto';
+                } else {
+                    button.style.opacity = '0.4';
+                    button.style.pointerEvents = 'none';
+                }
+            });
+        }
+
+        function updateCommodityFilterOptions(availableCommodities) {
+            const commodityCards = document.querySelectorAll('.commodity-card');
+            commodityCards.forEach(card => {
+                if (!card) return; // Safety check
+                
+                const nameElement = card.querySelector('.commodity-name');
+                if (!nameElement) return; // Safety check
+                
+                const commodityName = nameElement.textContent.trim();
+                if (commodityName === 'All') {
+                    card.style.opacity = '1';
+                    card.style.pointerEvents = 'auto';
+                    return;
+                }
+                
+                // Map display name to data name
+                const commodityMap = {
+                    'Maize': 'Maize', 'Rice': 'Rice', 'Onion': 'Onion', 'Sheep': 'Sheep',
+                    'Yam': 'Yam', 'Potato': 'Potato', 'Groundnut': 'Groundnut', 'Tomato': 'Tomato',
+                    'Chilli Pepper': 'Chilli pepper', 'Plantain': 'Plantain', 'Cowpea': 'Cowpea',
+                    'Soybean': 'Soybean', 'Millet': 'Millet', 'Eggplant': 'Eggplant',
+                    'Fish': 'Fish', 'Bean': 'Bean', 'Okra': 'Okra'
+                };
+                
+                const dataName = commodityMap[commodityName];
+                if (availableCommodities.has(dataName)) {
+                    card.style.opacity = '1';
+                    card.style.pointerEvents = 'auto';
+                    // Update count
+                    const countElement = card.querySelector('.commodity-count');
+                    if (countElement) {
+                        const count = availableCommodities.get(dataName);
+                        countElement.textContent = formatCount(count);
+                    }
+                } else {
+                    card.style.opacity = '0.4';
+                    card.style.pointerEvents = 'none';
+                }
+            });
+        }
+
+        function updateTransportFilterOptions(availableTransports) {
+            const transportBars = document.querySelectorAll('.filter-bar-item');
+            transportBars.forEach(bar => {
+                if (!bar) return; // Safety check
+                
+                const labelElement = bar.querySelector('.filter-bar-label');
+                if (!labelElement) return; // Safety check
+                
+                const transportLabel = labelElement.textContent.trim();
+                if (transportLabel === 'All Modes') {
+                    bar.style.opacity = '1';
+                    bar.style.pointerEvents = 'auto';
+                    return;
+                }
+                
+                // Map display name to data name
+                const transportMap = {
+                    'Truck': 'Truck', 'Articulator': 'Articulator', 'Passenger Car': 'Passenger Car',
+                    'Taximoto': 'Taximoto (motorking)', 'Motorbike': 'Motorbike', 'Taxi': 'Taxi',
+                    'Handtruck': 'Handtruck', 'Personal Car': 'Personal car', 'Bicycle': 'Bicycle',
+                    'Boat/Ferry': 'Boat/ferry', 'Donkey Cart': 'Donkey cart', 'Tanker': 'Tanker',
+                    'Rail': 'Rail', 'Plane': 'Plane', 'Other': 'Other'
+                };
+                
+                const dataName = transportMap[transportLabel];
+                if (availableTransports.has(dataName)) {
+                    bar.style.opacity = '1';
+                    bar.style.pointerEvents = 'auto';
+                    // Update percentage
+                    const total = Array.from(availableTransports.values()).reduce((a, b) => a + b, 0);
+                    if (total > 0) {
+                        const percentage = Math.round((availableTransports.get(dataName) / total) * 100);
+                        const barFill = bar.querySelector('.bar-fill');
+                        const barValue = bar.querySelector('.bar-value');
+                        if (barFill) barFill.style.width = `${percentage}%`;
+                        if (barValue) barValue.textContent = `${percentage}%`;
+                    }
+                } else {
+                    bar.style.opacity = '0.4';
+                    bar.style.pointerEvents = 'none';
+                }
+            });
+        }
+
+        function updateRuralUrbanFilterOptions(availableRuralUrban) {
+            const ruralUrbanBars = document.querySelectorAll('.rural-urban-bar');
+            ruralUrbanBars.forEach(bar => {
+                if (!bar) return; // Safety check
+                
+                const type = bar.getAttribute('data-type');
+                if (type === 'all') {
+                    bar.style.opacity = '1';
+                    bar.style.pointerEvents = 'auto';
+                    return;
+                }
+                
+                if (availableRuralUrban.has(type)) {
+                    bar.style.opacity = '1';
+                    bar.style.pointerEvents = 'auto';
+                    // Update percentage
+                    const total = Array.from(availableRuralUrban.values()).reduce((a, b) => a + b, 0);
+                    if (total > 0) {
+                        const percentage = Math.round((availableRuralUrban.get(type) / total) * 100);
+                        const barFill = bar.querySelector('.bar-fill');
+                        const barValue = bar.querySelector('.bar-value');
+                        if (barFill) barFill.style.width = `${percentage}%`;
+                        if (barValue) barValue.textContent = `${percentage}%`;
+                    }
+                } else {
+                    bar.style.opacity = '0.4';
+                    bar.style.pointerEvents = 'none';
+                }
+            });
+        }
+
+        function updateTradeTypeFilterOptions(availableTradeTypes) {
+            const tradeTypeBars = document.querySelectorAll('.trade-type-bar');
+            tradeTypeBars.forEach(bar => {
+                if (!bar) return; // Safety check
+                
+                const type = bar.getAttribute('data-type');
+                if (type === 'all') {
+                    bar.style.opacity = '1';
+                    bar.style.pointerEvents = 'auto';
+                    return;
+                }
+                
+                if (availableTradeTypes.has(type)) {
+                    bar.style.opacity = '1';
+                    bar.style.pointerEvents = 'auto';
+                    // Update percentage
+                    const total = Array.from(availableTradeTypes.values()).reduce((a, b) => a + b, 0);
+                    if (total > 0) {
+                        const percentage = Math.round((availableTradeTypes.get(type) / total) * 100);
+                        const barFill = bar.querySelector('.bar-fill');
+                        const barValue = bar.querySelector('.bar-value');
+                        if (barFill) barFill.style.width = `${percentage}%`;
+                        if (barValue) barValue.textContent = `${percentage}%`;
+                    }
+                } else {
+                    bar.style.opacity = '0.4';
+                    bar.style.pointerEvents = 'none';
+                }
+            });
+        }
+
+        function formatCount(count) {
+            if (count >= 1000) {
+                return (count / 1000).toFixed(1) + 'K';
+            }
+            return count.toString();
+        }
+
+        function filterAndUpdate() {
+            // Get values from either interactive or traditional mode
+            const yearFilter = document.getElementById('yearFilter');
+            const commodityFilter = document.getElementById('commodityFilter');
+            const transportFilter = document.getElementById('transportFilter');
+            const ruralUrbanFilter = document.getElementById('ruralUrbanFilter');
+            const tradeTypeFilter = document.getElementById('tradeTypeFilter');
+            
+            const year = yearFilter ? yearFilter.value : 'all';
+            const commodity = commodityFilter ? commodityFilter.value : 'all';
+            const transport = transportFilter ? transportFilter.value : 'all';
+            const ruralUrban = ruralUrbanFilter ? ruralUrbanFilter.value : 'all';
+            const tradeType = tradeTypeFilter ? tradeTypeFilter.value : 'all';
+            
+            // Update filter options based on current selections (constraints)
+            updateFilterOptions({ year, commodity, transport, ruralUrban, tradeType });
+            
+            if (currentDataSource === 'heatmap') {
+                // For heatmap: filter routes first, then generate heatmap from filtered data
+                const filters = { year, commodity, transport };
+                
+                let routesToAggregate = allData.map(route => {
+                    // Apply rural-urban filter
+                    if (colorMode === 'rural_urban' && ruralUrban !== 'all' && route.flow_type !== ruralUrban) {
+                        return null;
+                    }
+                    
+                    // Apply international-domestic filter
+                    if (colorMode === 'international') {
+                        if (tradeType === 'international' && !route.is_international) return null;
+                        if (tradeType === 'domestic' && route.is_international) return null;
+                    }
+                    
+                    // Get precise display data based on filters
+                    const displayData = getRouteDisplayData(route, filters);
+                    if (!displayData) return null; // Route doesn't match filters
+                    
+                    // Attach display data to route for aggregation
+                    return {
+                        ...route,
+                        _displayData: displayData
+                    };
+                }).filter(r => r !== null);
+                
+                // Store filtered routes info for stats (before aggregation)
+                window.heatmapSourceRoutes = routesToAggregate;
+                
+                // Generate heatmap from filtered routes
+                filteredRoutes = generateHeatmapFromRoutes(routesToAggregate);
+            } else {
+                // For other modes: standard route filtering
+                let data = getFilteredDataBySource(currentDataSource);
+                const filters = { year, commodity, transport };
+                
+                filteredRoutes = data.map(route => {
+                    // Apply rural-urban filter
+                    if (colorMode === 'rural_urban' && ruralUrban !== 'all' && route.flow_type !== ruralUrban) {
+                        return null;
+                    }
+                    
+                    // Apply international-domestic filter
+                    if (colorMode === 'international') {
+                        if (tradeType === 'international' && !route.is_international) return null;
+                        if (tradeType === 'domestic' && route.is_international) return null;
+                    }
+                    
+                    // Get precise display data based on filters
+                    const displayData = getRouteDisplayData(route, filters);
+                    if (!displayData) return null; // Route doesn't match filters
+                    
+                    // Attach display data to route for use in visualization
+                    return {
+                        ...route,
+                        _displayData: displayData
+                    };
+                }).filter(r => r !== null);
+            }
+
+            updateStats();
+            updateVisualization();
+        }
+
+        function updateStats() {
+            if (currentDataSource === 'heatmap') {
+                // Update labels for heatmap mode
+                document.getElementById('routesLabel').textContent = 'Source Routes';
+                document.getElementById('distanceLabel').textContent = 'Grid Points';
+                
+                // Show stats from filtered routes (before aggregation to grid)
+                const sourceRoutes = window.heatmapSourceRoutes || [];
+                
+                // Total routes used to generate heatmap
+                document.getElementById('visibleRoutes').textContent = sourceRoutes.length.toLocaleString();
+                
+                // Total flows from filtered routes
+                const totalFlows = sourceRoutes.reduce((sum, r) => {
+                    const flows = r._displayData ? r._displayData.flows : r.flows;
+                    return sum + (flows || 0);
+                }, 0);
+                document.getElementById('totalFlows').textContent = totalFlows.toLocaleString();
+                
+                // International flows count
+                const intlCount = sourceRoutes.filter(r => r.is_international).length;
+                document.getElementById('intlFlows').textContent = intlCount.toLocaleString();
+                
+                // Grid points generated
+                document.getElementById('avgDistance').textContent = filteredRoutes.length.toLocaleString();
+                
+                return;
+            }
+            
+            // Reset labels for non-heatmap modes
+            document.getElementById('routesLabel').textContent = 'Routes';
+            document.getElementById('distanceLabel').textContent = 'Avg Distance';
+
+            // Use precise flows from _displayData
+            const totalFlows = filteredRoutes.reduce((sum, r) => {
+                const flows = r._displayData ? r._displayData.flows : r.flows;
+                return sum + (flows || 0);
+            }, 0);
+            const intlCount = filteredRoutes.filter(r => r.is_international).length;
+            
+            // Calculate average distance
+            let totalDistance = 0;
+            let count = 0;
+            filteredRoutes.forEach(r => {
+                if (r.source && r.destination && r.source.coordinates && r.destination.coordinates) {
+                    const [lon1, lat1] = r.source.coordinates;
+                    const [lon2, lat2] = r.destination.coordinates;
+                    const dist = calculateDistance(lat1, lon1, lat2, lon2);
+                    totalDistance += dist;
+                    count++;
+                }
+            });
+            const avgDist = count > 0 ? Math.round(totalDistance / count) : 0;
+
+            document.getElementById('visibleRoutes').textContent = filteredRoutes.length.toLocaleString();
+            document.getElementById('totalFlows').textContent = totalFlows.toLocaleString();
+            document.getElementById('intlFlows').textContent = intlCount.toLocaleString();
+            document.getElementById('avgDistance').textContent = avgDist + ' km';
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        function getFlowTypeColor(route) {
+            if (colorMode === 'rural_urban' && route.flow_type) {
+                // Rural-Urban color scheme (legacy, for reference)
+                const colors = {
+                    'rural_to_urban': [46, 204, 113],    // Green - Rural supplies Urban
+                    'urban_to_rural': [52, 152, 219],    // Blue - Urban supplies Rural
+                    'rural_to_rural': [241, 196, 15],    // Yellow - Rural to Rural flows
+                    'urban_to_urban': [155, 89, 182]     // Purple - Urban to Urban flows
+                };
+                return colors[route.flow_type] || [200, 200, 200];
+            } else {
+                // International-Domestic color scheme
+                return route.is_international ? [229, 62, 62] : [49, 130, 206];
+            }
+        }
+
+        // Get color based on location type (Urban = yellow, Rural = blue)
+        function getLocationColor(isUrban) {
+            if (isUrban) {
+                return [251, 232, 25]; // #FBE819 Yellow for urban
+            } else {
+                return [42, 80, 234]; // #2A50EA Blue for rural
+            }
+        }
+
+        // Get color based on point type (Source = green, Destination = red)
+        function getPointTypeColor(isSource) {
+            if (isSource) {
+                return [16, 185, 129]; // #10b981 Green for source
+            } else {
+                return [239, 68, 68]; // #ef4444 Red for destination
+            }
+        }
+
+        function updateVisualization() {
+            if (!deckgl) return; // Ensure deckgl is initialized
+            
+            const arcWidth = parseFloat(document.getElementById('arcWidth').value);
+            const showPoints = document.getElementById('showPoints').checked;
+            const showViaCity = document.getElementById('showViaCity').checked;
+
+            const layers = [];
+
+            if (currentDataSource === 'heatmap') {
+                // Heatmap layer
+                const heatmapLayer = new HeatmapLayer({
+                    id: 'heatmap-layer',
+                    data: filteredRoutes,
+                    getPosition: d => d.coordinates,
+                    getWeight: d => d.weight,
+                    radiusPixels: 60,
+                    intensity: 1,
+                    threshold: 0.05
+                });
+                layers.push(heatmapLayer);
+
+            } else {
+                // Arc layer - either direct or via city routes
+                let arcData = filteredRoutes;
+                
+                // If showViaCity is enabled, create two-segment routes
+                if (showViaCity) {
+                    arcData = [];
+                    filteredRoutes.forEach(route => {
+                        if (route.via_city && route.via_city.coordinates) {
+                            // First segment: source → via_city
+                            arcData.push({
+                                ...route,
+                                _segment: 'first',
+                                _targetPos: route.via_city.coordinates
+                            });
+                            // Second segment: via_city → destination
+                            arcData.push({
+                                ...route,
+                                _segment: 'second',
+                                _sourcePos: route.via_city.coordinates
+                            });
+                        } else {
+                            // No via_city, keep as direct route
+                            arcData.push(route);
+                        }
+                    });
+                }
+                
+                const arcLayer = new ArcLayer({
+                    id: 'arc-layer',
+                    data: arcData,
+                    getSourcePosition: d => d._sourcePos || d.source.coordinates,
+                    getTargetPosition: d => d._targetPos || d.destination.coordinates,
+                    getSourceColor: d => {
+                        // Check if this route should be highlighted
+                        const highlightedRoute = selectedRoute || hoveredRoute;
+                        const isHighlighted = !highlightedRoute || 
+                            (d.source.name === highlightedRoute.source.name && 
+                             d.destination.name === highlightedRoute.destination.name);
+                        
+                        if (colorMode === 'rural_urban') {
+                            // Color based on source location type
+                            const color = getLocationColor(d.source.is_urban);
+                            const alpha = isHighlighted ? 180 : 5; // Dim non-highlighted routes more
+                            return [color[0], color[1], color[2], alpha];
+                        } else if (colorMode === 'source_destination') {
+                            // Source-Destination color scheme: source is green
+                            const color = getPointTypeColor(true); // true = source
+                            const alpha = isHighlighted ? 200 : 8;
+                            return [color[0], color[1], color[2], alpha];
+                        } else {
+                            // International-Domestic color scheme
+                            const color = getFlowTypeColor(d);
+                            const alpha = isHighlighted ? 255 : 8;
+                            return [color[0], color[1], color[2], alpha];
+                        }
+                    },
+                    getTargetColor: d => {
+                        // Check if this route should be highlighted
+                        const highlightedRoute = selectedRoute || hoveredRoute;
+                        const isHighlighted = !highlightedRoute || 
+                            (d.source.name === highlightedRoute.source.name && 
+                             d.destination.name === highlightedRoute.destination.name);
+                        
+                        if (colorMode === 'rural_urban') {
+                            // Color based on destination location type
+                            const color = getLocationColor(d.destination.is_urban);
+                            const alpha = isHighlighted ? 60 : 3; // Dim non-highlighted routes more
+                            return [color[0], color[1], color[2], alpha];
+                        } else if (colorMode === 'source_destination') {
+                            // Source-Destination color scheme: destination is red
+                            const color = getPointTypeColor(false); // false = destination
+                            const alpha = isHighlighted ? 80 : 5;
+                            return [color[0], color[1], color[2], alpha];
+                        } else {
+                            // International-Domestic color scheme
+                            const color = getFlowTypeColor(d);
+                            const alpha = isHighlighted ? 60 : 5;
+                            return [color[0], color[1], color[2], alpha];
+                        }
+                    },
+                    getWidth: d => {
+                        // Use precise flows from _displayData if available
+                        const flows = d._displayData ? d._displayData.flows : (d.flows || d.total_flows || 1);
+                        return Math.log(flows + 1) * arcWidth;
+                    },
+                    pickable: true,
+                    autoHighlight: false, // Disable auto-highlight, we handle it manually
+                    onHover: handleHover,
+                    onClick: handleClick,
+                    updateTriggers: {
+                        getWidth: arcWidth,  // Force recalculation when arcWidth changes
+                        getSourceColor: [colorMode, hoveredRoute, selectedRoute],  // Update when hover/select changes
+                        getTargetColor: [colorMode, hoveredRoute, selectedRoute]   // Update when hover/select changes
+                    }
+                });
+                layers.push(arcLayer);
+
+                // Points layer - icons for source (▲) and destination (▼)
+                if (showPoints) {
+                    const sourcePointsMap = new Map();
+                    const destPointsMap = new Map();
+                    
+                    // Collect all unique points and track which routes they belong to
+                    filteredRoutes.forEach(r => {
+                        if (r.source && r.source.coordinates) {
+                            const key = r.source.name;
+                            if (!sourcePointsMap.has(key)) {
+                                sourcePointsMap.set(key, {
+                                    position: r.source.coordinates,
+                                    type: 'source',
+                                    name: r.source.name,
+                                    country: r.source.country,
+                                    is_urban: r.source.is_urban,
+                                    routes: []
+                                });
+                            }
+                            sourcePointsMap.get(key).routes.push(r);
+                        }
+                        if (r.destination && r.destination.coordinates) {
+                            const key = r.destination.name;
+                            if (!destPointsMap.has(key)) {
+                                destPointsMap.set(key, {
+                                    position: r.destination.coordinates,
+                                    type: 'destination',
+                                    name: r.destination.name,
+                                    country: r.destination.country,
+                                    is_urban: r.destination.is_urban,
+                                    routes: []
+                                });
+                            }
+                            destPointsMap.get(key).routes.push(r);
+                        }
+                    });
+                    
+                    const sourcePoints = Array.from(sourcePointsMap.values());
+                    const destPoints = Array.from(destPointsMap.values());
+
+                    // Icon mapping for triangles
+                    const ICON_MAPPING = {
+                        triangle_up: {x: 0, y: 0, width: 128, height: 128, mask: true},
+                        triangle_down: {x: 0, y: 0, width: 128, height: 128, mask: true}
+                    };
+
+                    // Source icons layer (▲ rendered first, appears below)
+                    const sourceLayer = new IconLayer({
+                        id: 'source-icons-layer',
+                        data: sourcePoints,
+                        getPosition: d => d.position,
+                        getIcon: d => 'triangle_up',
+                        getColor: d => {
+                            // Check if this point belongs to highlighted route
+                            const highlightedRoute = selectedRoute || hoveredRoute;
+                            let isHighlighted = !highlightedRoute;
+                            
+                            if (highlightedRoute && d.routes) {
+                                isHighlighted = d.routes.some(r => 
+                                    r.source.name === highlightedRoute.source.name && 
+                                    r.destination.name === highlightedRoute.destination.name
+                                );
+                            }
+                            
+                            // Color based on mode
+                            let color;
+                            if (colorMode === 'rural_urban') {
+                                // Color by location type: Urban = yellow, Rural = blue
+                                color = getLocationColor(d.is_urban);
+                            } else if (colorMode === 'source_destination') {
+                                // All sources are green
+                                color = getPointTypeColor(true); // true = source
+                            } else {
+                                // International mode: use location color
+                                color = getLocationColor(d.is_urban);
+                            }
+                            const alpha = isHighlighted ? 180 : 10;
+                            return [color[0], color[1], color[2], alpha];
+                        },
+                        getSize: 22, // Unified size for hexagon effect
+                        sizeMinPixels: 7,
+                        sizeMaxPixels: 30,
+                        iconAtlas: 'data:image/svg+xml;base64,' + btoa(`
+                            <svg width="128" height="128" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M 64 28 L 102 88 L 26 88 Z" fill="white" stroke="rgba(0,0,0,0.3)" stroke-width="3"/>
+                            </svg>
+                        `),
+                        iconMapping: ICON_MAPPING,
+                        pickable: true,
+                        onHover: handleHover,
+                        updateTriggers: {
+                            getColor: [colorMode, hoveredRoute, selectedRoute]
+                        }
+                    });
+                    layers.push(sourceLayer);
+
+                    // Destination icons layer (▼ rendered second, appears on top, same size for hexagon)
+                    const destLayer = new IconLayer({
+                        id: 'dest-icons-layer',
+                        data: destPoints,
+                        getPosition: d => d.position,
+                        getIcon: d => 'triangle_down',
+                        getColor: d => {
+                            // Check if this point belongs to highlighted route
+                            const highlightedRoute = selectedRoute || hoveredRoute;
+                            let isHighlighted = !highlightedRoute;
+                            
+                            if (highlightedRoute && d.routes) {
+                                isHighlighted = d.routes.some(r => 
+                                    r.source.name === highlightedRoute.source.name && 
+                                    r.destination.name === highlightedRoute.destination.name
+                                );
+                            }
+                            
+                            // Color based on mode
+                            let color;
+                            if (colorMode === 'rural_urban') {
+                                // Color by location type: Urban = yellow, Rural = blue
+                                color = getLocationColor(d.is_urban);
+                            } else if (colorMode === 'source_destination') {
+                                // All destinations are red
+                                color = getPointTypeColor(false); // false = destination
+                            } else {
+                                // International mode: use location color
+                                color = getLocationColor(d.is_urban);
+                            }
+                            const alpha = isHighlighted ? 180 : 10;
+                            return [color[0], color[1], color[2], alpha];
+                        },
+                        getSize: 22, // Same size as source for perfect hexagon
+                        sizeMinPixels: 7,
+                        sizeMaxPixels: 30,
+                        iconAtlas: 'data:image/svg+xml;base64,' + btoa(`
+                            <svg width="128" height="128" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M 64 100 L 26 40 L 102 40 Z" fill="white" stroke="rgba(0,0,0,0.3)" stroke-width="3"/>
+                            </svg>
+                        `),
+                        iconMapping: ICON_MAPPING,
+                        pickable: true,
+                        onHover: handleHover,
+                        updateTriggers: {
+                            getColor: [colorMode, hoveredRoute, selectedRoute]
+                        }
+                    });
+                    layers.push(destLayer);
+                }
+
+                // Via city visualization (elevated spheres + vertical lines)
+                if (showViaCity) {
+                    // Extract unique via cities from filtered routes
+                    const viaCityMap = new Map();
+                    filteredRoutes.forEach(r => {
+                        if (r.via_city && r.via_city.coordinates) {
+                            const key = r.via_city.name;
+                            if (!viaCityMap.has(key)) {
+                                viaCityMap.set(key, {
+                                    name: r.via_city.name,
+                                    coordinates: r.via_city.coordinates,
+                                    routeCount: 0
+                                });
+                            }
+                            viaCityMap.get(key).routeCount++;
+                        }
+                    });
+                    const viaCityPoints = Array.from(viaCityMap.values());
+
+                    // City color mapping
+                    const cityColors = {
+                        'Bamako': [255, 165, 0],      // Orange
+                        'Tamale': [46, 204, 113],     // Green
+                        'Ouagadougou': [52, 152, 219], // Blue
+                        'Bamenda': [155, 89, 182]      // Purple
+                    };
+
+                    // Elevated sphere layer for via cities
+                    const viaCitySphereLayer = new deck.ScatterplotLayer({
+                        id: 'via-city-spheres',
+                        data: viaCityPoints,
+                        getPosition: d => [...d.coordinates, 500], // Elevated 500m
+                        getRadius: 25000, // Larger than source/dest points
+                        getFillColor: d => {
+                            const color = cityColors[d.name] || [255, 165, 0];
+                            return [...color, 200]; // Semi-transparent
+                        },
+                        stroked: true,
+                        getLineColor: d => {
+                            const color = cityColors[d.name] || [255, 165, 0];
+                            return [...color, 255];
+                        },
+                        lineWidthMinPixels: 2,
+                        pickable: true,
+                        onHover: handleHover
+                    });
+                    layers.push(viaCitySphereLayer);
+
+                    // Vertical line layer from sphere to ground
+                    const viaCityLineLayer = new deck.LineLayer({
+                        id: 'via-city-lines',
+                        data: viaCityPoints,
+                        getSourcePosition: d => [...d.coordinates, 500], // Top (sphere)
+                        getTargetPosition: d => [...d.coordinates, 0],   // Ground
+                        getColor: d => {
+                            const color = cityColors[d.name] || [255, 165, 0];
+                            return [...color, 200]; // More opaque
+                        },
+                        getWidth: 5, // Thicker line
+                        widthMinPixels: 3
+                    });
+                    layers.push(viaCityLineLayer);
+                }
+            }
+
+            deckgl.setProps({ layers });
+        }
+
+        function handleClick(info) {
+            if (info.object && info.object.source && info.object.destination) {
+                // Get the original route (not the segment)
+                const clickedRoute = info.object._segment ? 
+                    filteredRoutes.find(r => 
+                        r.source.name === info.object.source.name && 
+                        r.destination.name === info.object.destination.name
+                    ) : info.object;
+                
+                // Toggle selection
+                if (selectedRoute === clickedRoute) {
+                    selectedRoute = null; // Deselect if clicking the same route
+                } else {
+                    selectedRoute = clickedRoute;
+                }
+                updateVisualization();
+            } else {
+                // Click on empty space - clear selection
+                if (selectedRoute) {
+                    selectedRoute = null;
+                    updateVisualization();
+                }
+            }
+        }
+
+        function handleHover(info) {
+            const tooltip = document.getElementById('tooltip');
+            
+            // Update hovered route for highlighting
+            if (info.object && info.object.source && info.object.destination) {
+                // Get the original route (not the segment)
+                hoveredRoute = info.object._segment ? 
+                    filteredRoutes.find(r => 
+                        r.source.name === info.object.source.name && 
+                        r.destination.name === info.object.destination.name
+                    ) : info.object;
+                updateVisualization();
+            } else if (!info.object && !selectedRoute) {
+                // Only clear hover if nothing is selected
+                if (hoveredRoute) {
+                    hoveredRoute = null;
+                    updateVisualization();
+                }
+            }
+            
+            if (info.object) {
+                const obj = info.object;
+                let html = '';
+
+                if (obj.source && obj.destination) {
+                    // Arc (route) tooltip - use _displayData for precise values
+                    const displayData = obj._displayData || obj;
+                    
+                    // Build title with via_city
+                    let titlePrefix = '';
+                    if (colorMode === 'rural_urban') {
+                        const sourceIcon = obj.source.is_urban ? '🏙️' : '🏘️';
+                        const destIcon = obj.destination.is_urban ? '🏙️' : '🏘️';
+                        
+                        // Show three-point route with via_city
+                        if (obj.via_city && obj.via_city.name) {
+                            titlePrefix = `${sourceIcon} ${obj.source.name} → ${obj.via_city.name} → ${destIcon} ${obj.destination.name}`;
+                        } else {
+                            titlePrefix = `${sourceIcon} ${obj.source.name} → ${destIcon} ${obj.destination.name}`;
+                        }
+                    } else if (colorMode === 'source_destination') {
+                        // Show with source/destination icons
+                        if (obj.via_city && obj.via_city.name) {
+                            titlePrefix = `📤 ${obj.source.name} → ${obj.via_city.name} → 📥 ${obj.destination.name}`;
+                        } else {
+                            titlePrefix = `📤 ${obj.source.name} → 📥 ${obj.destination.name}`;
+                        }
+                    } else {
+                        // Show three-point route
+                        if (obj.via_city && obj.via_city.name) {
+                            titlePrefix = `${obj.source.name} → ${obj.via_city.name} → ${obj.destination.name}`;
+                        } else {
+                            titlePrefix = `${obj.source.name} → ${obj.destination.name}`;
+                        }
+                    }
+                    
+                    html = `
+                        <div class="tooltip-title">${titlePrefix}</div>
+                        <div class="tooltip-item">🔄 Flows: ${(displayData.flows || 0).toLocaleString()}</div>
+                    `;
+                    
+                    // Show year range if multiple years
+                    if (displayData.years && displayData.years.length > 0) {
+                        const yearDisplay = displayData.years.length === 1 
+                            ? displayData.years[0]
+                            : `${Math.min(...displayData.years)}-${Math.max(...displayData.years)}`;
+                        html += `<div class="tooltip-item">📅 Year: ${yearDisplay}</div>`;
+                    }
+                    
+                    // Show flow type based on color mode
+                    if (colorMode === 'rural_urban' && obj.flow_type_label) {
+                        html += `<div class="tooltip-item">🔀 ${obj.flow_type_label}</div>`;
+                    } else if (colorMode === 'international') {
+                        html += `<div class="tooltip-item">${obj.is_international ? '🌐 International' : '🏠 Domestic'}</div>`;
+                    } else if (colorMode === 'source_destination') {
+                        html += `<div class="tooltip-item">📤 Source → 📥 Destination</div>`;
+                    }
+                    
+                    html += `<div class="tooltip-item">📍 ${obj.source.country} → ${obj.destination.country}</div>`;
+                    
+                    // Show main transportation mode from displayData
+                    if (displayData.main_transport) {
+                        html += `<div class="tooltip-item">🚗 ${displayData.main_transport}</div>`;
+                    }
+                    
+                    // Show commodities from displayData (precise for filters)
+                    if (displayData.commodities) {
+                        const commodities = displayData.commodities;
+                        const commList = Object.entries(commodities).slice(0, 3)
+                            .map(([name, count]) => `${name} (${count})`)
+                            .join(', ');
+                        html += `<div class="tooltip-commodities">📦 ${commList}</div>`;
+                    }
+                } else if (obj.name) {
+                    // Point tooltip (source, destination, or via_city)
+                    if (obj.routeCount !== undefined) {
+                        // Via city point
+                        html = `
+                            <div class="tooltip-title">🏙️ ${obj.name}</div>
+                            <div class="tooltip-item">Transit City</div>
+                            <div class="tooltip-item">🔄 ${obj.routeCount} routes pass through</div>
+                        `;
+                    } else {
+                        // Source or destination point
+                        const urbanStatus = obj.is_urban !== undefined ? (obj.is_urban ? '🏙️ Urban' : '🏘️ Rural') : '';
+                        const pointTypeLabel = obj.type === 'source' ? '📤 Source' : '📥 Destination';
+                        html = `
+                            <div class="tooltip-title">${obj.name}</div>
+                            <div class="tooltip-item">📍 ${obj.country}</div>
+                            ${urbanStatus && colorMode === 'rural_urban' ? `<div class="tooltip-item">${urbanStatus}</div>` : ''}
+                            <div class="tooltip-item">${pointTypeLabel}</div>
+                        `;
+                    }
+                }
+
+                tooltip.innerHTML = html;
+                tooltip.style.display = 'block';
+                tooltip.style.left = info.x + 'px';
+                tooltip.style.top = info.y + 'px';
+            } else {
+                tooltip.style.display = 'none';
+            }
+        }
+
+        // ========== New Interactive Filter Functions ==========
+        
+        function toggleFilterMode(mode) {
+            const interactiveMode = document.getElementById('interactiveMode');
+            const traditionalMode = document.getElementById('traditionalMode');
+            const buttons = document.querySelectorAll('.mode-btn');
+            
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (mode === 'interactive') {
+                interactiveMode.style.display = 'block';
+                traditionalMode.style.display = 'none';
+            } else {
+                interactiveMode.style.display = 'none';
+                traditionalMode.style.display = 'block';
+                // Re-attach traditional event listeners
+                setupTraditionalListeners();
+            }
+        }
+
+        function selectColorMode(element, mode) {
+            // Update visual selection
+            const items = element.parentElement.querySelectorAll('.filter-bar-item');
+            items.forEach(item => item.classList.remove('active'));
+            element.classList.add('active');
+            
+            // Apply filter
+            switchColorMode(mode);
+        }
+
+        // 统计图表选择函数
+        function selectRuralUrbanStat(element, type) {
+            const bars = element.parentElement.querySelectorAll('.stat-bar');
+            bars.forEach(bar => bar.classList.remove('active'));
+            element.classList.add('active');
+            
+            // Sync with hidden select
+            const select = document.getElementById('ruralUrbanFilter');
+            if (select) select.value = type;
+            
+            filterAndUpdate();
+        }
+
+        function selectTradeTypeStat(element, type) {
+            const bars = element.parentElement.querySelectorAll('.stat-bar');
+            bars.forEach(bar => bar.classList.remove('active'));
+            element.classList.add('active');
+            
+            // Sync with hidden select
+            const select = document.getElementById('tradeTypeFilter');
+            if (select) select.value = type;
+            
+            filterAndUpdate();
+        }
+
+        function selectYearStat(element, year) {
+            const bars = element.parentElement.querySelectorAll('.stat-bar');
+            bars.forEach(bar => bar.classList.remove('active'));
+            element.classList.add('active');
+            
+            // Sync with hidden select
+            const select = document.getElementById('yearFilter');
+            if (select) select.value = year;
+            
+            filterAndUpdate();
+        }
+
+        function selectRouteFilterStat(element, filter) {
+            const bars = element.parentElement.querySelectorAll('.stat-bar');
+            bars.forEach(bar => bar.classList.remove('active'));
+            element.classList.add('active');
+            
+            // Sync with hidden select
+            const select = document.getElementById('routeFilter');
+            if (select) select.value = filter;
+            
+            switchDataSource(filter);
+        }
+
+        // 传统条形图选择函数
+        function selectRuralUrban(element, type) {
+            const items = element.parentElement.querySelectorAll('.filter-bar-item');
+            items.forEach(item => item.classList.remove('active'));
+            element.classList.add('active');
+            
+            // Sync with hidden select (for compatibility)
+            const select = document.getElementById('ruralUrbanFilter');
+            if (select) select.value = type;
+            
+            filterAndUpdate();
+        }
+
+        function selectTradeType(element, type) {
+            const items = element.parentElement.querySelectorAll('.filter-bar-item');
+            items.forEach(item => item.classList.remove('active'));
+            element.classList.add('active');
+            
+            // Sync with hidden select
+            const select = document.getElementById('tradeTypeFilter');
+            if (select) select.value = type;
+            
+            filterAndUpdate();
+        }
+
+        function selectYear(element, year) {
+            const buttons = element.parentElement.querySelectorAll('.year-button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            
+            // Sync with hidden select
+            const select = document.getElementById('yearFilter');
+            if (select) select.value = year;
+            
+            filterAndUpdate();
+        }
+
+        function selectCommodity(element, commodity) {
+            const cards = element.parentElement.querySelectorAll('.commodity-card');
+            cards.forEach(card => card.classList.remove('active'));
+            element.classList.add('active');
+            
+            // Sync with hidden select
+            const select = document.getElementById('commodityFilter');
+            if (select) select.value = commodity;
+            
+            switchToCommodity(commodity);
+        }
+
+        function selectTransport(element, transport) {
+            const items = element.parentElement.querySelectorAll('.filter-bar-item');
+            items.forEach(item => item.classList.remove('active'));
+            element.classList.add('active');
+            
+            // Sync with hidden select
+            const select = document.getElementById('transportFilter');
+            if (select) select.value = transport;
+            
+            filterAndUpdate();
+        }
+
+        function selectRouteFilter(element, filter) {
+            const items = element.parentElement.querySelectorAll('.filter-bar-item');
+            items.forEach(item => item.classList.remove('active'));
+            element.classList.add('active');
+            
+            // Sync with hidden select
+            const select = document.getElementById('routeFilter');
+            if (select) select.value = filter;
+            
+            switchDataSource(filter);
+        }
+
+        // ========== Original Event Listeners ==========
+
+        function setupTraditionalListeners() {
+            // Color mode switch
+            const colorModeSelect = document.getElementById('colorModeSelect');
+            if (colorModeSelect) {
+                colorModeSelect.addEventListener('change', function() {
+                switchColorMode(this.value);
+            });
+            }
+
+            // Route filter dropdown
+            const routeFilter = document.getElementById('routeFilter');
+            if (routeFilter) {
+                routeFilter.addEventListener('change', function() {
+                switchDataSource(this.value);
+            });
+            }
+
+            // Commodity filter
+            const commodityFilter = document.getElementById('commodityFilter');
+            if (commodityFilter) {
+                commodityFilter.addEventListener('change', function() {
+                switchToCommodity(this.value);
+            });
+            }
+
+            // Other filters
+            const yearFilter = document.getElementById('yearFilter');
+            if (yearFilter) {
+                yearFilter.addEventListener('change', filterAndUpdate);
+            }
+
+            const transportFilter = document.getElementById('transportFilter');
+            if (transportFilter) {
+                transportFilter.addEventListener('change', filterAndUpdate);
+            }
+
+            const tradeTypeFilter = document.getElementById('tradeTypeFilter');
+            if (tradeTypeFilter) {
+                tradeTypeFilter.addEventListener('change', filterAndUpdate);
+            }
+
+            const ruralUrbanFilter = document.getElementById('ruralUrbanFilter');
+            if (ruralUrbanFilter) {
+                ruralUrbanFilter.addEventListener('change', filterAndUpdate);
+            }
+        }
+
+        function setupEventListeners() {
+            // Set up traditional mode listeners (hidden by default)
+            setupTraditionalListeners();
+            
+            // Arc width - real-time update
+            document.getElementById('arcWidth').addEventListener('input', function() {
+                const value = parseFloat(this.value).toFixed(1);
+                document.getElementById('arcWidthValue').textContent = value;
+                updateVisualization();
+            });
+
+            // Show points
+            document.getElementById('showPoints').addEventListener('change', updateVisualization);
+            
+            // Show via city
+            document.getElementById('showViaCity').addEventListener('change', updateVisualization);
+        }
+
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
+
