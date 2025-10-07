@@ -133,30 +133,42 @@ def create_routes_with_rural_urban(df, min_flows=1):
     
     routes = []
     
-    # === 按三点路线聚合: source_nam + city + destination_name + flow_type ===
-    # 这样可以区分：同一source-destination但经过不同city的路线
+    # === 按三点路线聚合: 以坐标为准（名字可重复）===
+    # 坐标舍入到小数点后3位（约111米精度），避免GPS微小偏差
     
     # Add city to grouping (using fillna to handle missing values)
     df['city_grouped'] = df['city'].fillna('direct')
     
+    # Round coordinates for aggregation (3 decimal places ≈ 111m precision)
+    df['src_x_rounded'] = df['Source x'].round(3)
+    df['src_y_rounded'] = df['Source y'].round(3)
+    df['dest_x_rounded'] = df['Destination x'].round(3)
+    df['dest_y_rounded'] = df['Destination y'].round(3)
+    
     grouped = df.groupby([
-        'source_nam',
-        'destination_name', 
+        'src_x_rounded',
+        'src_y_rounded',
+        'dest_x_rounded',
+        'dest_y_rounded',
         'city_grouped',
         'flow_type'
     ])
     
     for key, route_df in grouped:
-        source_name, dest_name, city_name, flow_type = key
+        src_x_rounded, src_y_rounded, dest_x_rounded, dest_y_rounded, city_name, flow_type = key
         
         if len(route_df) < min_flows:
             continue
         
-        # 从实际数据中获取坐标和国家信息（取第一条或众数）
-        src_x = route_df['Source x'].median()
-        src_y = route_df['Source y'].median()
-        dest_x = route_df['Destination x'].median()
-        dest_y = route_df['Destination y'].median()
+        # 使用舍入后的坐标（作为唯一标识）
+        src_x = src_x_rounded
+        src_y = src_y_rounded
+        dest_x = dest_x_rounded
+        dest_y = dest_y_rounded
+        
+        # 获取名字（取众数，因为同一坐标可能有多个名字）
+        source_name = route_df['source_nam'].mode()[0] if len(route_df['source_nam'].mode()) > 0 else 'Unknown'
+        dest_name = route_df['destination_name'].mode()[0] if len(route_df['destination_name'].mode()) > 0 else 'Unknown'
         
         src_country = route_df['Source_country_name'].mode()[0] if len(route_df['Source_country_name'].mode()) > 0 else 'Unknown'
         dest_country = route_df['Dest_country_name'].mode()[0] if len(route_df['Dest_country_name'].mode()) > 0 else 'Unknown'
