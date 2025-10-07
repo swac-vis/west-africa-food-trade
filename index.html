@@ -249,6 +249,10 @@
             color: white;
         }
 
+        .commodity-card.active .commodity-bar {
+            background: white !important;
+        }
+
         .commodity-name {
             font-size: 0.6rem;
             font-weight: 500;
@@ -559,17 +563,17 @@
                     <div class="filter-bar-item active" onclick="selectColorMode(this, 'source_destination')">
                         <span class="filter-bar-label">Source-Dest</span>
                         <div class="bar-container"><div class="bar-fill" style="width: 100%"></div></div>
-                        <span class="bar-value">100%</span>
+                        <span class="bar-value">Default</span>
                     </div>
                     <div class="filter-bar-item" onclick="selectColorMode(this, 'rural_urban')">
                         <span class="filter-bar-label">Rural-Urban</span>
                         <div class="bar-container"><div class="bar-fill" style="width: 48%"></div></div>
-                        <span class="bar-value">48%</span>
+                        <span class="bar-value">R→U 48%</span>
                     </div>
                     <div class="filter-bar-item" onclick="selectColorMode(this, 'international')">
                         <span class="filter-bar-label">Trade Type</span>
                         <div class="bar-container"><div class="bar-fill" style="width: 7%"></div></div>
-                        <span class="bar-value">7%</span>
+                        <span class="bar-value">Intl 7%</span>
                     </div>
                 </div>
             </div>
@@ -639,167 +643,17 @@
 
             <!-- Commodities -->
             <div class="control-group">
-                <label>Commodities</label>
-                <div class="commodity-grid">
-                    <div class="commodity-card active" onclick="selectCommodity(this, 'all')">
-                        <div class="commodity-name">All</div>
-                        <div class="commodity-count">80.7K</div>
-                    </div>
-                    <div class="commodity-card" onclick="selectCommodity(this, 'maize')">
-                        <div class="commodity-name">Maize</div>
-                        <div class="commodity-count">18.2K</div>
-                    </div>
-                    <div class="commodity-card" onclick="selectCommodity(this, 'rice')">
-                        <div class="commodity-name">Rice</div>
-                        <div class="commodity-count">12.4K</div>
-                    </div>
-                    <div class="commodity-card" onclick="selectCommodity(this, 'onion')">
-                        <div class="commodity-name">Onion</div>
-                        <div class="commodity-count">8.9K</div>
-                    </div>
-                    <div class="commodity-card" onclick="selectCommodity(this, 'sheep')">
-                        <div class="commodity-name">Sheep</div>
-                        <div class="commodity-count">6.7K</div>
-                    </div>
-                    <div class="commodity-card" onclick="selectCommodity(this, 'yam')">
-                        <div class="commodity-name">Yam</div>
-                        <div class="commodity-count">5.2K</div>
-                    </div>
-                    <div class="commodity-card" onclick="selectCommodity(this, 'potato')">
-                        <div class="commodity-name">Potato</div>
-                        <div class="commodity-count">4.8K</div>
-                    </div>
-                    <div class="commodity-card" onclick="selectCommodity(this, 'groundnut')">
-                        <div class="commodity-name">Groundnut</div>
-                        <div class="commodity-count">4.1K</div>
-                    </div>
-                    <div class="commodity-card" onclick="selectCommodity(this, 'tomato')">
-                        <div class="commodity-name">Tomato</div>
-                        <div class="commodity-count">3.9K</div>
-                    </div>
-                    <div class="commodity-card" onclick="selectCommodity(this, 'chilli_pepper')">
-                        <div class="commodity-name">Chilli Pepper</div>
-                        <div class="commodity-count">3.2K</div>
-                    </div>
-                    <div class="commodity-card" onclick="selectCommodity(this, 'plantain')">
-                        <div class="commodity-name">Plantain</div>
-                        <div class="commodity-count">2.8K</div>
-                    </div>
-                    <div class="commodity-card" onclick="selectCommodity(this, 'cowpea')">
-                        <div class="commodity-name">Cowpea</div>
-                        <div class="commodity-count">2.5K</div>
-                    </div>
-                    <div class="commodity-card" onclick="selectCommodity(this, 'soybean')">
-                        <div class="commodity-name">Soybean</div>
-                        <div class="commodity-count">2.1K</div>
-                    </div>
-                    <div class="commodity-card" onclick="selectCommodity(this, 'millet')">
-                        <div class="commodity-name">Millet</div>
-                        <div class="commodity-count">1.8K</div>
-                    </div>
-                    <div class="commodity-card" onclick="selectCommodity(this, 'eggplant')">
-                        <div class="commodity-name">Eggplant</div>
-                        <div class="commodity-count">1.5K</div>
-                    </div>
-                    <div class="commodity-card" onclick="selectCommodity(this, 'fish')">
-                        <div class="commodity-name">Fish</div>
-                        <div class="commodity-count">1.2K</div>
-                    </div>
-                    <div class="commodity-card" onclick="selectCommodity(this, 'bean')">
-                        <div class="commodity-name">Bean</div>
-                        <div class="commodity-count">1.0K</div>
-                    </div>
-                    <div class="commodity-card" onclick="selectCommodity(this, 'okra')">
-                        <div class="commodity-name">Okra</div>
-                        <div class="commodity-count">0.8K</div>
-                    </div>
+                <label id="commodityLabel">Commodities</label>
+                <div class="commodity-grid" id="commodityGrid" style="max-height: 250px;">
+                    <!-- Dynamically generated from data -->
                 </div>
             </div>
 
             <!-- Transport Modes -->
             <div class="control-group">
-                <label>Transport</label>
-                <div class="filter-bars">
-                    <div class="filter-bar-item active" onclick="selectTransport(this, 'all')">
-                        <span class="filter-bar-label">All Modes</span>
-                        <div class="bar-container"><div class="bar-fill" style="width: 100%"></div></div>
-                        <span class="bar-value">100%</span>
-                    </div>
-                    <div class="filter-bar-item" onclick="selectTransport(this, 'Truck')">
-                        <span class="filter-bar-label">Truck</span>
-                        <div class="bar-container"><div class="bar-fill" style="width: 45%"></div></div>
-                        <span class="bar-value">45%</span>
-                    </div>
-                    <div class="filter-bar-item" onclick="selectTransport(this, 'Articulator')">
-                        <span class="filter-bar-label">Articulator</span>
-                        <div class="bar-container"><div class="bar-fill" style="width: 35%"></div></div>
-                        <span class="bar-value">35%</span>
-                    </div>
-                    <div class="filter-bar-item" onclick="selectTransport(this, 'Passenger Car')">
-                        <span class="filter-bar-label">Passenger Car</span>
-                        <div class="bar-container"><div class="bar-fill" style="width: 12%"></div></div>
-                        <span class="bar-value">12%</span>
-                    </div>
-                    <div class="filter-bar-item" onclick="selectTransport(this, 'Taximoto (motorking)')">
-                        <span class="filter-bar-label">Taximoto</span>
-                        <div class="bar-container"><div class="bar-fill" style="width: 5%"></div></div>
-                        <span class="bar-value">5%</span>
-                    </div>
-                    <div class="filter-bar-item" onclick="selectTransport(this, 'Motorbike')">
-                        <span class="filter-bar-label">Motorbike</span>
-                        <div class="bar-container"><div class="bar-fill" style="width: 3%"></div></div>
-                        <span class="bar-value">3%</span>
-                    </div>
-                    <div class="filter-bar-item" onclick="selectTransport(this, 'Taxi')">
-                        <span class="filter-bar-label">Taxi</span>
-                        <div class="bar-container"><div class="bar-fill" style="width: 2%"></div></div>
-                        <span class="bar-value">2%</span>
-                    </div>
-                    <div class="filter-bar-item" onclick="selectTransport(this, 'Handtruck')">
-                        <span class="filter-bar-label">Handtruck</span>
-                        <div class="bar-container"><div class="bar-fill" style="width: 1.5%"></div></div>
-                        <span class="bar-value">1.5%</span>
-                    </div>
-                    <div class="filter-bar-item" onclick="selectTransport(this, 'Personal car')">
-                        <span class="filter-bar-label">Personal Car</span>
-                        <div class="bar-container"><div class="bar-fill" style="width: 1%"></div></div>
-                        <span class="bar-value">1%</span>
-                    </div>
-                    <div class="filter-bar-item" onclick="selectTransport(this, 'Bicycle')">
-                        <span class="filter-bar-label">Bicycle</span>
-                        <div class="bar-container"><div class="bar-fill" style="width: 0.8%"></div></div>
-                        <span class="bar-value">0.8%</span>
-                    </div>
-                    <div class="filter-bar-item" onclick="selectTransport(this, 'Boat/ferry')">
-                        <span class="filter-bar-label">Boat/Ferry</span>
-                        <div class="bar-container"><div class="bar-fill" style="width: 0.5%"></div></div>
-                        <span class="bar-value">0.5%</span>
-                    </div>
-                    <div class="filter-bar-item" onclick="selectTransport(this, 'Donkey cart')">
-                        <span class="filter-bar-label">Donkey Cart</span>
-                        <div class="bar-container"><div class="bar-fill" style="width: 0.4%"></div></div>
-                        <span class="bar-value">0.4%</span>
-                    </div>
-                    <div class="filter-bar-item" onclick="selectTransport(this, 'Tanker')">
-                        <span class="filter-bar-label">Tanker</span>
-                        <div class="bar-container"><div class="bar-fill" style="width: 0.3%"></div></div>
-                        <span class="bar-value">0.3%</span>
-                    </div>
-                    <div class="filter-bar-item" onclick="selectTransport(this, 'Rail')">
-                        <span class="filter-bar-label">Rail</span>
-                        <div class="bar-container"><div class="bar-fill" style="width: 0.2%"></div></div>
-                        <span class="bar-value">0.2%</span>
-                    </div>
-                    <div class="filter-bar-item" onclick="selectTransport(this, 'Plane')">
-                        <span class="filter-bar-label">Plane</span>
-                        <div class="bar-container"><div class="bar-fill" style="width: 0.1%"></div></div>
-                        <span class="bar-value">0.1%</span>
-                    </div>
-                    <div class="filter-bar-item" onclick="selectTransport(this, 'Other')">
-                        <span class="filter-bar-label">Other</span>
-                        <div class="bar-container"><div class="bar-fill" style="width: 0.5%"></div></div>
-                        <span class="bar-value">0.5%</span>
-                    </div>
+                <label id="transportLabel">Transport</label>
+                <div class="filter-bars" id="transportBars" style="max-height: 250px;">
+                    <!-- Dynamically generated from data -->
                 </div>
             </div>
 
@@ -844,63 +698,31 @@
             </select>
         </div>
 
-            <div class="control-group">
-                <label>Year</label>
-                <select id="yearFilter">
+        <div class="control-group">
+            <label>Year</label>
+            <select id="yearFilter">
                     <option value="all" selected>All Years</option>
-                    <option value="2013">2013</option>
-                    <option value="2014">2014</option>
-                    <option value="2015">2015</option>
-                    <option value="2016">2016</option>
-                    <option value="2017">2017</option>
+                <option value="2013">2013</option>
+                <option value="2014">2014</option>
+                <option value="2015">2015</option>
+                <option value="2016">2016</option>
+                <option value="2017">2017</option>
             </select>
         </div>
 
             <div class="control-group">
                 <label>Commodity</label>
                 <select id="commodityFilter">
-                    <option value="all" selected>All Commodities</option>
-                    <option value="maize">Maize</option>
-                    <option value="rice">Rice</option>
-                    <option value="onion">Onion</option>
-                    <option value="sheep">Sheep</option>
-                    <option value="yam">Yam</option>
-                    <option value="potato">Potato</option>
-                    <option value="groundnut">Groundnut</option>
-                    <option value="tomato">Tomato</option>
-                    <option value="chilli_pepper">Chilli Pepper</option>
-                    <option value="plantain">Plantain</option>
-                    <option value="cowpea">Cowpea</option>
-                    <option value="soybean">Soybean</option>
-                    <option value="millet">Millet</option>
-                    <option value="eggplant">Eggplant</option>
-                    <option value="fish">Fish</option>
-                    <option value="bean">Bean</option>
-                    <option value="okra">Okra</option>
+                    <!-- Dynamically generated from data -->
                 </select>
             </div>
 
-        <div class="control-group">
-            <label>Transportation Mode</label>
-            <select id="transportFilter">
-                <option value="all" selected>All Modes</option>
-                <option value="Truck">Truck</option>
-                <option value="Articulator">Articulator</option>
-                <option value="Passenger Car">Passenger Car</option>
-                <option value="Taximoto (motorking)">Taximoto (motorking)</option>
-                <option value="Motorbike">Motorbike</option>
-                <option value="Taxi">Taxi</option>
-                <option value="Handtruck">Handtruck</option>
-                <option value="Personal car">Personal car</option>
-                <option value="Bicycle">Bicycle</option>
-                <option value="Boat/ferry">Boat/ferry</option>
-                <option value="Donkey cart">Donkey cart</option>
-                <option value="Tanker">Tanker</option>
-                <option value="Rail">Rail</option>
-                <option value="Plane">Plane</option>
-                <option value="Other">Other</option>
-            </select>
-        </div>
+            <div class="control-group">
+                <label>Transportation Mode</label>
+                <select id="transportFilter">
+                    <!-- Dynamically generated from data -->
+                </select>
+            </div>
 
             <div class="control-group">
                 <label>🏘️ Rural-Urban Pattern</label>
@@ -1029,10 +851,250 @@
         let colorMode = 'source_destination'; // Color mode: 'source_destination', 'rural_urban', or 'international'
         let hoveredRoute = null; // Currently hovered route
         let selectedRoute = null; // Currently selected (clicked) route
+        let selectedPoint = null; // Currently selected point {name, type: 'source'|'destination'}
         
 
         // Single data file - all filtering done client-side for efficiency
         const SINGLE_DATA_FILE = 'food_flows_all_routes_rural_urban.json';
+
+        // Global commodity mapping (lowercase key -> Exact data name from JSON)
+        const COMMODITY_MAP = {
+            'maize': 'Maize', 
+            'rice': 'Rice', 
+            'onion': 'Onion', 
+            'sheep': 'Sheep',
+            'yam': 'Yam', 
+            'potato': 'Potato', 
+            'groundnut': 'Groundnut', 
+            'tomato': 'Tomato',
+            'chilli_pepper': 'Chilli pepper', 
+            'plantain': 'Plantain', 
+            'cattle': 'Cattle',
+            'fish': 'Fish', 
+            'bean': 'Bean', 
+            'millet': 'Millet',
+            'chicken': 'Chicken',
+            'mango': 'Mango',
+            'cabbage': 'Cabbage',
+            'banana': 'Banana',
+            'goat': 'Goat',
+            'soybean': 'Soybean',
+            'cocoyam': 'Cocoyam',
+            'eggplant': 'Eggplant',
+            'gari': 'Gari',
+            'watermelon': 'Watermelon',
+            'okra': 'Okra',
+            'cassava': 'Cassava',
+            'orange': 'Orange',
+            'sweet_potato': 'Sweet potato',  // 注意：小写p
+            'wheat_flour': 'Wheat flour',
+            'wheat': 'Wheat',
+            'sorghum': 'Sorghum',
+            'cucumber': 'Cucumber',
+            'avocado': 'Avocado',
+            'pig': 'Pig',
+            'papaya': 'Papaya',
+            'zucchini': 'Zucchini',
+            'pineapple': 'Pineapple',
+            'spring_onion': 'Spring onion',
+            'guinea_fowl': 'Guinew fowl',  // 注意：数据中是Guinew，不是Guinea
+            'leeks': 'Leeks',
+            'sweet_pepper': 'Sweet pepper',
+            'ginger': 'Ginger',
+            'carrot': 'Carrot',
+            'cowpea': 'Cowpea',
+            'green_bean': 'Green bean',
+            'bambara_beans': 'Bambara beans'
+        };
+
+        // Reverse mapping (Data name -> Display name)
+        const COMMODITY_DISPLAY_MAP = {};
+        Object.entries(COMMODITY_MAP).forEach(([key, value]) => {
+            COMMODITY_DISPLAY_MAP[value] = value.charAt(0).toUpperCase() + value.slice(1);
+        });
+
+        /**
+         * Generate dynamic filter options from loaded data
+         */
+        function generateFilterOptionsFromData() {
+            if (!allData) return;
+            
+            // Calculate commodity counts
+            const commodityCounts = new Map();
+            allData.forEach(route => {
+                if (route.by_commodity) {
+                    Object.entries(route.by_commodity).forEach(([commodity, data]) => {
+                        const count = commodityCounts.get(commodity) || 0;
+                        commodityCounts.set(commodity, count + data.flows);
+                    });
+                }
+            });
+            
+            // Calculate transport counts
+            const transportCounts = new Map();
+            allData.forEach(route => {
+                if (route.by_transport) {
+                    Object.entries(route.by_transport).forEach(([transport, data]) => {
+                        const count = transportCounts.get(transport) || 0;
+                        transportCounts.set(transport, count + data.flows);
+                    });
+                }
+            });
+            
+            // Update label with count
+            document.getElementById('commodityLabel').textContent = `Commodities (${commodityCounts.size} types)`;
+            document.getElementById('transportLabel').textContent = `Transport (${transportCounts.size} modes)`;
+            
+            // Generate commodity cards
+            generateCommodityCards(commodityCounts);
+            
+            // Generate transport bars
+            generateTransportBars(transportCounts);
+            
+            // Also update traditional mode selects
+            generateTraditionalModeOptions(commodityCounts, transportCounts);
+        }
+
+        function generateCommodityCards(commodityCounts) {
+            const grid = document.getElementById('commodityGrid');
+            grid.innerHTML = ''; // Clear existing
+            
+            // Calculate total flows for "All"
+            const totalFlows = Array.from(commodityCounts.values()).reduce((a, b) => a + b, 0);
+            
+            // Find max count for color scaling
+            const maxCount = commodityCounts.size > 0 ? Math.max(...commodityCounts.values()) : 0;
+            
+            // Add "All" option first
+            const allCard = document.createElement('div');
+            allCard.className = 'commodity-card active';
+            allCard.onclick = function() { selectCommodity(this, 'all'); };
+            allCard.innerHTML = `
+                <div class="commodity-name">All</div>
+                <div class="commodity-count">${formatCount(totalFlows)}</div>
+            `;
+            grid.appendChild(allCard);
+            
+            // Sort commodities by count (descending)
+            const sortedCommodities = Array.from(commodityCounts.entries())
+                .sort((a, b) => b[1] - a[1]);
+            
+            // Generate card for each commodity
+            sortedCommodities.forEach(([commodity, count]) => {
+                // Find the key for this commodity
+                let commodityKey = null;
+                for (const [key, value] of Object.entries(COMMODITY_MAP)) {
+                    if (value === commodity) {
+                        commodityKey = key;
+                        break;
+                    }
+                }
+                
+                // If no key found, create one from commodity name
+                if (!commodityKey) {
+                    commodityKey = commodity.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+                    COMMODITY_MAP[commodityKey] = commodity;
+                }
+                
+                // Calculate intensity for bar chart (0-100)
+                const intensity = maxCount > 0 ? Math.round((count / maxCount) * 100) : 0;
+                
+                const card = document.createElement('div');
+                card.className = 'commodity-card';
+                card.onclick = function() { selectCommodity(this, commodityKey); };
+                card.innerHTML = `
+                    <div class="commodity-name">${commodity}</div>
+                    <div class="commodity-count">${formatCount(count)}</div>
+                    <div class="commodity-bar" style="width: ${intensity}%; height: 2px; background: #6c757d; margin-top: 3px; border-radius: 1px;"></div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function generateTransportBars(transportCounts) {
+            const container = document.getElementById('transportBars');
+            container.innerHTML = ''; // Clear existing
+            
+            // Calculate total for percentages
+            const total = Array.from(transportCounts.values()).reduce((a, b) => a + b, 0);
+            
+            // Add "All" option first
+            const allBar = document.createElement('div');
+            allBar.className = 'filter-bar-item active';
+            allBar.onclick = function() { selectTransport(this, 'all'); };
+            allBar.innerHTML = `
+                <span class="filter-bar-label">All Modes</span>
+                <div class="bar-container"><div class="bar-fill" style="width: 100%"></div></div>
+                <span class="bar-value">100%</span>
+            `;
+            container.appendChild(allBar);
+            
+            // Sort transports by count (descending)
+            const sortedTransports = Array.from(transportCounts.entries())
+                .sort((a, b) => b[1] - a[1]);
+            
+            // Generate bar for each transport mode
+            sortedTransports.forEach(([transport, count]) => {
+                const percentage = Math.round((count / total) * 100);
+                const bar = document.createElement('div');
+                bar.className = 'filter-bar-item';
+                bar.onclick = function() { selectTransport(this, transport); };
+                bar.innerHTML = `
+                    <span class="filter-bar-label">${transport}</span>
+                    <div class="bar-container"><div class="bar-fill" style="width: ${percentage}%"></div></div>
+                    <span class="bar-value">${percentage}%</span>
+                `;
+                container.appendChild(bar);
+            });
+        }
+
+        function generateTraditionalModeOptions(commodityCounts, transportCounts) {
+            // Update commodity select
+            const commoditySelect = document.getElementById('commodityFilter');
+            if (commoditySelect) {
+                // Keep only the "All" option
+                commoditySelect.innerHTML = '<option value="all" selected>All Commodities</option>';
+                
+                // Sort and add commodities
+                const sortedCommodities = Array.from(commodityCounts.entries())
+                    .sort((a, b) => b[1] - a[1]);
+                
+                sortedCommodities.forEach(([commodity, count]) => {
+                    // Find the key
+                    let commodityKey = null;
+                    for (const [key, value] of Object.entries(COMMODITY_MAP)) {
+                        if (value === commodity) {
+                            commodityKey = key;
+                            break;
+                        }
+                    }
+                    if (!commodityKey) {
+                        commodityKey = commodity.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+                    }
+                    
+                    const option = document.createElement('option');
+                    option.value = commodityKey;
+                    option.textContent = commodity;
+                    commoditySelect.appendChild(option);
+                });
+            }
+            
+            // Update transport select
+            const transportSelect = document.getElementById('transportFilter');
+            if (transportSelect) {
+                transportSelect.innerHTML = '<option value="all" selected>All Modes</option>';
+                
+                const sortedTransports = Array.from(transportCounts.entries())
+                    .sort((a, b) => b[1] - a[1]);
+                
+                sortedTransports.forEach(([transport, count]) => {
+                    const option = document.createElement('option');
+                    option.value = transport;
+                    option.textContent = transport;
+                    transportSelect.appendChild(option);
+                });
+            }
+        }
 
         async function init() {
             try {
@@ -1048,10 +1110,11 @@
                 initDeckGL();
                 updateStats();  // Update statistics on initial load
                 updateVisualization();
-                setupEventListeners();
                 
-                // Initialize filter constraints
-                updateFilterOptions({ year: 'all', commodity: 'all', transport: 'all', ruralUrban: 'all', tradeType: 'all' });
+                // Generate dynamic filter options from data
+                generateFilterOptionsFromData();
+                
+                setupEventListeners();
 
             } catch (error) {
                 console.error('Error loading data:', error);
@@ -1276,28 +1339,7 @@
 
             // Apply commodity filter using by_commodity breakdown
             if (filters.commodity && filters.commodity !== 'all' && route.by_commodity) {
-                // Find matching commodity (case insensitive)
-                const commodityMap = {
-                    'maize': 'Maize',
-                    'rice': 'Rice',
-                    'onion': 'Onion',
-                    'sheep': 'Sheep',
-                    'yam': 'Yam',
-                    'potato': 'Potato',
-                    'groundnut': 'Groundnut',
-                    'tomato': 'Tomato',
-                    'chilli_pepper': 'Chilli pepper',
-                    'plantain': 'Plantain',
-                    'cowpea': 'Cowpea',
-                    'soybean': 'Soybean',
-                    'millet': 'Millet',
-                    'eggplant': 'Eggplant',
-                    'fish': 'Fish',
-                    'bean': 'Bean',
-                    'okra': 'Okra'
-                };
-                
-                const targetCommodity = commodityMap[filters.commodity];
+                const targetCommodity = COMMODITY_MAP[filters.commodity];
                 const commodityData = route.by_commodity[targetCommodity];
                 
                 if (!commodityData) return null; // Route doesn't transport this commodity
@@ -1340,15 +1382,8 @@
                 
                 // Apply commodity filter
                 if (commodity !== 'all' && route.by_commodity) {
-                    const commodityMap = {
-                        'maize': 'Maize', 'rice': 'Rice', 'onion': 'Onion', 'sheep': 'Sheep',
-                        'yam': 'Yam', 'potato': 'Potato', 'groundnut': 'Groundnut', 'tomato': 'Tomato',
-                        'chilli_pepper': 'Chilli pepper', 'plantain': 'Plantain', 'cowpea': 'Cowpea',
-                        'soybean': 'Soybean', 'millet': 'Millet', 'eggplant': 'Eggplant',
-                        'fish': 'Fish', 'bean': 'Bean', 'okra': 'Okra'
-                    };
-                    const targetCommodity = commodityMap[commodity];
-                    if (!route.by_commodity[targetCommodity]) return false;
+                    const targetCommodity = COMMODITY_MAP[commodity];
+                    if (!targetCommodity || !route.by_commodity[targetCommodity]) return false;
                 }
                 
                 // Apply transport filter
@@ -1365,7 +1400,7 @@
             });
             
             // Calculate available options for each filter
-            const availableOptions = calculateAvailableOptions(filteredRoutes);
+            const availableOptions = calculateAvailableOptions(filteredRoutes, currentFilters);
             
             // Update interactive filter UI
             updateInteractiveFilterOptions(availableOptions, currentFilters);
@@ -1373,8 +1408,11 @@
 
         /**
          * Calculate available options based on filtered routes
+         * Uses "replacement" logic: shows what data is available if you REPLACE current filter
          */
-        function calculateAvailableOptions(routes) {
+        function calculateAvailableOptions(routes, currentFilters) {
+            const { year, commodity, transport, ruralUrban, tradeType } = currentFilters;
+            
             const options = {
                 years: new Set(),
                 commodities: new Map(),
@@ -1383,41 +1421,86 @@
                 tradeTypes: new Map()
             };
             
-            routes.forEach(route => {
-                // Years
+            // For each filter type, calculate what's available if we REPLACE that filter
+            // This gives accurate counts for "what if I select this option instead"
+            
+            // Calculate available years (considering other filters, but replacing year filter)
+            allData.forEach(route => {
+                // Skip if doesn't match non-year filters
+                if (commodity !== 'all' && route.by_commodity) {
+                    const targetCommodity = COMMODITY_MAP[commodity];
+                    if (!targetCommodity || !route.by_commodity[targetCommodity]) return;
+                }
+                if (transport !== 'all' && route.by_transport && !route.by_transport[transport]) return;
+                if (colorMode === 'rural_urban' && ruralUrban !== 'all' && route.flow_type !== ruralUrban) return;
+                if (colorMode === 'international' && tradeType !== 'all') {
+                    if (tradeType === 'international' && !route.is_international) return;
+                    if (tradeType === 'domestic' && route.is_international) return;
+                }
+                
+                // Add available years
                 if (route.by_year) {
-                    Object.keys(route.by_year).forEach(year => {
-                        options.years.add(year);
-                    });
+                    Object.keys(route.by_year).forEach(y => options.years.add(y));
+                }
+            });
+            
+            // Calculate available commodities (considering other filters, but replacing commodity filter)
+            allData.forEach(route => {
+                if (transport !== 'all' && route.by_transport && !route.by_transport[transport]) return;
+                if (year !== 'all' && route.by_year && !route.by_year[year]) return;
+                if (colorMode === 'rural_urban' && ruralUrban !== 'all' && route.flow_type !== ruralUrban) return;
+                if (colorMode === 'international' && tradeType !== 'all') {
+                    if (tradeType === 'international' && !route.is_international) return;
+                    if (tradeType === 'domestic' && route.is_international) return;
                 }
                 
-                // Commodities
                 if (route.by_commodity) {
-                    Object.entries(route.by_commodity).forEach(([commodity, data]) => {
-                        const count = options.commodities.get(commodity) || 0;
-                        options.commodities.set(commodity, count + data.flows);
+                    Object.entries(route.by_commodity).forEach(([comm, data]) => {
+                        const count = options.commodities.get(comm) || 0;
+                        options.commodities.set(comm, count + data.flows);
                     });
                 }
+            });
+            
+            // Calculate available transports (considering other filters, but replacing transport filter)
+            allData.forEach(route => {
+                if (commodity !== 'all' && route.by_commodity) {
+                    const targetCommodity = COMMODITY_MAP[commodity];
+                    if (!targetCommodity || !route.by_commodity[targetCommodity]) return;
+                }
+                if (year !== 'all' && route.by_year && !route.by_year[year]) return;
+                if (colorMode === 'rural_urban' && ruralUrban !== 'all' && route.flow_type !== ruralUrban) return;
+                if (colorMode === 'international' && tradeType !== 'all') {
+                    if (tradeType === 'international' && !route.is_international) return;
+                    if (tradeType === 'domestic' && route.is_international) return;
+                }
                 
-                // Transport modes
                 if (route.by_transport) {
-                    Object.entries(route.by_transport).forEach(([transport, data]) => {
-                        const count = options.transports.get(transport) || 0;
-                        options.transports.set(transport, count + data.flows);
+                    Object.entries(route.by_transport).forEach(([trans, data]) => {
+                        const count = options.transports.get(trans) || 0;
+                        options.transports.set(trans, count + data.flows);
                     });
                 }
+            });
+            
+            // Calculate rural-urban and trade types
+            allData.forEach(route => {
+                if (commodity !== 'all' && route.by_commodity) {
+                    const targetCommodity = COMMODITY_MAP[commodity];
+                    if (!targetCommodity || !route.by_commodity[targetCommodity]) return;
+                }
+                if (transport !== 'all' && route.by_transport && !route.by_transport[transport]) return;
+                if (year !== 'all' && route.by_year && !route.by_year[year]) return;
                 
-                // Rural-Urban patterns
                 const flowType = route.flow_type;
                 if (flowType) {
                     const count = options.ruralUrban.get(flowType) || 0;
                     options.ruralUrban.set(flowType, count + route.flows);
                 }
                 
-                // Trade types
-                const tradeType = route.is_international ? 'international' : 'domestic';
-                const tradeCount = options.tradeTypes.get(tradeType) || 0;
-                options.tradeTypes.set(tradeType, tradeCount + route.flows);
+                const trade = route.is_international ? 'international' : 'domestic';
+                const tradeCount = options.tradeTypes.get(trade) || 0;
+                options.tradeTypes.set(trade, tradeCount + route.flows);
             });
             
             return options;
@@ -1427,14 +1510,15 @@
          * Update interactive filter options in the UI
          */
         function updateInteractiveFilterOptions(availableOptions, currentFilters) {
+            // Regenerate commodity and transport options with updated data
+            generateCommodityCards(availableOptions.commodities);
+            generateTransportBars(availableOptions.transports);
+            
+            // Restore active state for current selections
+            restoreActiveState(currentFilters);
+            
             // Update year filter
             updateYearFilterOptions(availableOptions.years);
-            
-            // Update commodity filter
-            updateCommodityFilterOptions(availableOptions.commodities);
-            
-            // Update transport filter
-            updateTransportFilterOptions(availableOptions.transports);
             
             // Update rural-urban filter
             updateRuralUrbanFilterOptions(availableOptions.ruralUrban);
@@ -1444,6 +1528,42 @@
             
             // Ensure Color Mode options are always available (not constrained by other filters)
             ensureColorModeAlwaysAvailable();
+        }
+
+        /**
+         * Restore active state after regenerating filter options
+         */
+        function restoreActiveState(currentFilters) {
+            const { commodity, transport } = currentFilters;
+            
+            // Restore commodity active state
+            if (commodity && commodity !== 'all') {
+                const commodityCards = document.querySelectorAll('.commodity-card');
+                commodityCards.forEach(card => {
+                    card.classList.remove('active');
+                    const nameEl = card.querySelector('.commodity-name');
+                    if (nameEl) {
+                        const name = nameEl.textContent.trim();
+                        // Find if this card matches current selection
+                        const dataName = COMMODITY_MAP[commodity];
+                        if (dataName === name) {
+                            card.classList.add('active');
+                        }
+                    }
+                });
+            }
+            
+            // Restore transport active state
+            if (transport && transport !== 'all') {
+                const transportBars = document.querySelectorAll('#transportBars .filter-bar-item');
+                transportBars.forEach(bar => {
+                    bar.classList.remove('active');
+                    const labelEl = bar.querySelector('.filter-bar-label');
+                    if (labelEl && labelEl.textContent.trim() === transport) {
+                        bar.classList.add('active');
+                    }
+                });
+            }
         }
 
         function updateYearFilterOptions(availableYears) {
@@ -1462,98 +1582,6 @@
             });
         }
 
-        function updateCommodityFilterOptions(availableCommodities) {
-            const commodityCards = document.querySelectorAll('.commodity-card');
-            commodityCards.forEach(card => {
-                if (!card) return; // Safety check
-                
-                const nameElement = card.querySelector('.commodity-name');
-                if (!nameElement) return; // Safety check
-                
-                const commodityName = nameElement.textContent.trim();
-                if (commodityName === 'All') {
-                    card.style.opacity = '1';
-                    card.style.pointerEvents = 'auto';
-                    return;
-                }
-                
-                // Map display name to data name
-                const commodityMap = {
-                    'Maize': 'Maize', 'Rice': 'Rice', 'Onion': 'Onion', 'Sheep': 'Sheep',
-                    'Yam': 'Yam', 'Potato': 'Potato', 'Groundnut': 'Groundnut', 'Tomato': 'Tomato',
-                    'Chilli Pepper': 'Chilli pepper', 'Plantain': 'Plantain', 'Cowpea': 'Cowpea',
-                    'Soybean': 'Soybean', 'Millet': 'Millet', 'Eggplant': 'Eggplant',
-                    'Fish': 'Fish', 'Bean': 'Bean', 'Okra': 'Okra'
-                };
-                
-                const dataName = commodityMap[commodityName];
-                if (availableCommodities.has(dataName)) {
-                    card.style.opacity = '1';
-                    card.style.pointerEvents = 'auto';
-                    // Update count
-                    const countElement = card.querySelector('.commodity-count');
-                    if (countElement) {
-                        const count = availableCommodities.get(dataName);
-                        countElement.textContent = formatCount(count);
-                    }
-                } else {
-                    card.style.opacity = '0.4';
-                    card.style.pointerEvents = 'none';
-                }
-            });
-        }
-
-        function updateTransportFilterOptions(availableTransports) {
-            // Only select transport bars, not all filter-bar-items (which includes color mode)
-            const allControlGroups = document.querySelectorAll('.control-group');
-            let transportBars = [];
-            allControlGroups.forEach(group => {
-                const label = group.querySelector('label');
-                if (label && label.textContent.trim() === 'Transport') {
-                    transportBars = group.querySelectorAll('.filter-bar-item');
-                }
-            });
-            transportBars.forEach(bar => {
-                if (!bar) return; // Safety check
-                
-                const labelElement = bar.querySelector('.filter-bar-label');
-                if (!labelElement) return; // Safety check
-                
-                const transportLabel = labelElement.textContent.trim();
-                if (transportLabel === 'All Modes') {
-                    bar.style.opacity = '1';
-                    bar.style.pointerEvents = 'auto';
-                    return;
-                }
-                
-                // Map display name to data name
-                const transportMap = {
-                    'Truck': 'Truck', 'Articulator': 'Articulator', 'Passenger Car': 'Passenger Car',
-                    'Taximoto': 'Taximoto (motorking)', 'Motorbike': 'Motorbike', 'Taxi': 'Taxi',
-                    'Handtruck': 'Handtruck', 'Personal Car': 'Personal car', 'Bicycle': 'Bicycle',
-                    'Boat/Ferry': 'Boat/ferry', 'Donkey Cart': 'Donkey cart', 'Tanker': 'Tanker',
-                    'Rail': 'Rail', 'Plane': 'Plane', 'Other': 'Other'
-                };
-                
-                const dataName = transportMap[transportLabel];
-                if (availableTransports.has(dataName)) {
-                    bar.style.opacity = '1';
-                    bar.style.pointerEvents = 'auto';
-                    // Update percentage
-                    const total = Array.from(availableTransports.values()).reduce((a, b) => a + b, 0);
-                    if (total > 0) {
-                        const percentage = Math.round((availableTransports.get(dataName) / total) * 100);
-                        const barFill = bar.querySelector('.bar-fill');
-                        const barValue = bar.querySelector('.bar-value');
-                        if (barFill) barFill.style.width = `${percentage}%`;
-                        if (barValue) barValue.textContent = `${percentage}%`;
-                    }
-                } else {
-                    bar.style.opacity = '0.4';
-                    bar.style.pointerEvents = 'none';
-                }
-            });
-        }
 
         function updateRuralUrbanFilterOptions(availableRuralUrban) {
             const ruralUrbanBars = document.querySelectorAll('.rural-urban-bar');
@@ -1885,49 +1913,75 @@
                     getTargetPosition: d => d._targetPos || d.destination.coordinates,
                     getSourceColor: d => {
                         // Check if this route should be highlighted
-                        const highlightedRoute = selectedRoute || hoveredRoute;
-                        const isHighlighted = !highlightedRoute || 
-                            (d.source.name === highlightedRoute.source.name && 
-                             d.destination.name === highlightedRoute.destination.name);
+                        let isHighlighted = true;
+                        
+                        // Priority 1: Point selection
+                        if (selectedPoint) {
+                            if (selectedPoint.type === 'source') {
+                                isHighlighted = (d.source.name === selectedPoint.name);
+                            } else if (selectedPoint.type === 'destination') {
+                                isHighlighted = (d.destination.name === selectedPoint.name);
+                            }
+                        }
+                        // Priority 2: Route selection
+                        else if (selectedRoute) {
+                            isHighlighted = (d.source.name === selectedRoute.source.name && 
+                                           d.destination.name === selectedRoute.destination.name);
+                        }
+                        // Priority 3: Hover
+                        else if (hoveredRoute) {
+                            isHighlighted = (d.source.name === hoveredRoute.source.name && 
+                                           d.destination.name === hoveredRoute.destination.name);
+                        }
                         
                         if (colorMode === 'rural_urban') {
-                            // Color based on source location type
                             const color = getLocationColor(d.source.is_urban);
-                            const alpha = isHighlighted ? 180 : 5; // Dim non-highlighted routes more
+                            const alpha = isHighlighted ? 180 : 3;
                             return [color[0], color[1], color[2], alpha];
                         } else if (colorMode === 'source_destination') {
-                            // Source-Destination color scheme: source is green
-                            const color = getPointTypeColor(true); // true = source
-                            const alpha = isHighlighted ? 200 : 8;
+                            const color = getPointTypeColor(true);
+                            const alpha = isHighlighted ? 200 : 5;
                             return [color[0], color[1], color[2], alpha];
                         } else {
-                            // International-Domestic color scheme
                             const color = getFlowTypeColor(d);
-                            const alpha = isHighlighted ? 255 : 8;
+                            const alpha = isHighlighted ? 255 : 5;
                             return [color[0], color[1], color[2], alpha];
                         }
                     },
                     getTargetColor: d => {
                         // Check if this route should be highlighted
-                        const highlightedRoute = selectedRoute || hoveredRoute;
-                        const isHighlighted = !highlightedRoute || 
-                            (d.source.name === highlightedRoute.source.name && 
-                             d.destination.name === highlightedRoute.destination.name);
+                        let isHighlighted = true;
+                        
+                        // Priority 1: Point selection
+                        if (selectedPoint) {
+                            if (selectedPoint.type === 'source') {
+                                isHighlighted = (d.source.name === selectedPoint.name);
+                            } else if (selectedPoint.type === 'destination') {
+                                isHighlighted = (d.destination.name === selectedPoint.name);
+                            }
+                        }
+                        // Priority 2: Route selection
+                        else if (selectedRoute) {
+                            isHighlighted = (d.source.name === selectedRoute.source.name && 
+                                           d.destination.name === selectedRoute.destination.name);
+                        }
+                        // Priority 3: Hover
+                        else if (hoveredRoute) {
+                            isHighlighted = (d.source.name === hoveredRoute.source.name && 
+                                           d.destination.name === hoveredRoute.destination.name);
+                        }
                         
                         if (colorMode === 'rural_urban') {
-                            // Color based on destination location type
                             const color = getLocationColor(d.destination.is_urban);
-                            const alpha = isHighlighted ? 60 : 3; // Dim non-highlighted routes more
+                            const alpha = isHighlighted ? 60 : 2;
                             return [color[0], color[1], color[2], alpha];
                         } else if (colorMode === 'source_destination') {
-                            // Source-Destination color scheme: destination is red
-                            const color = getPointTypeColor(false); // false = destination
-                            const alpha = isHighlighted ? 80 : 5;
+                            const color = getPointTypeColor(false);
+                            const alpha = isHighlighted ? 80 : 3;
                             return [color[0], color[1], color[2], alpha];
                         } else {
-                            // International-Domestic color scheme
                             const color = getFlowTypeColor(d);
-                            const alpha = isHighlighted ? 60 : 5;
+                            const alpha = isHighlighted ? 60 : 3;
                             return [color[0], color[1], color[2], alpha];
                         }
                     },
@@ -1942,8 +1996,8 @@
                     onClick: handleClick,
                     updateTriggers: {
                         getWidth: arcWidth,  // Force recalculation when arcWidth changes
-                        getSourceColor: [colorMode, hoveredRoute, selectedRoute],  // Update when hover/select changes
-                        getTargetColor: [colorMode, hoveredRoute, selectedRoute]   // Update when hover/select changes
+                        getSourceColor: [colorMode, hoveredRoute, selectedRoute, selectedPoint],  // Update when hover/select changes
+                        getTargetColor: [colorMode, hoveredRoute, selectedRoute, selectedPoint]   // Update when hover/select changes
                     }
                 });
                 layers.push(arcLayer);
@@ -2001,30 +2055,46 @@
                         getPosition: d => d.position,
                         getIcon: d => 'triangle_up',
                         getColor: d => {
-                            // Check if this point belongs to highlighted route
-                            const highlightedRoute = selectedRoute || hoveredRoute;
-                            let isHighlighted = !highlightedRoute;
+                            // Check if this point should be highlighted
+                            let isHighlighted = true;
                             
-                            if (highlightedRoute && d.routes) {
-                                isHighlighted = d.routes.some(r => 
-                                    r.source.name === highlightedRoute.source.name && 
-                                    r.destination.name === highlightedRoute.destination.name
+                            // Priority 1: Point selection
+                            if (selectedPoint) {
+                                if (selectedPoint.type === 'source') {
+                                    // Highlight this source point if it matches selected point
+                                    // OR if this source's routes include the selected source
+                                    isHighlighted = (d.name === selectedPoint.name) || 
+                                        (d.routes && d.routes.some(r => r.source.name === selectedPoint.name));
+                                } else if (selectedPoint.type === 'destination') {
+                                    // Highlight source points that have routes to selected destination
+                                    isHighlighted = d.routes && d.routes.some(r => r.destination.name === selectedPoint.name);
+                                }
+                            }
+                            // Priority 2: Route selection
+                            else if (selectedRoute) {
+                                isHighlighted = d.routes && d.routes.some(r => 
+                                    r.source.name === selectedRoute.source.name && 
+                                    r.destination.name === selectedRoute.destination.name
+                                );
+                            }
+                            // Priority 3: Hover
+                            else if (hoveredRoute) {
+                                isHighlighted = d.routes && d.routes.some(r => 
+                                    r.source.name === hoveredRoute.source.name && 
+                                    r.destination.name === hoveredRoute.destination.name
                                 );
                             }
                             
                             // Color based on mode
                             let color;
                             if (colorMode === 'rural_urban') {
-                                // Color by location type: Urban = yellow, Rural = blue
                                 color = getLocationColor(d.is_urban);
                             } else if (colorMode === 'source_destination') {
-                                // All sources are green
                                 color = getPointTypeColor(true); // true = source
                             } else {
-                                // International mode: use location color
                                 color = getLocationColor(d.is_urban);
                             }
-                            const alpha = isHighlighted ? 180 : 10;
+                            const alpha = isHighlighted ? 200 : 5;
                             return [color[0], color[1], color[2], alpha];
                         },
                         getSize: 22, // Unified size for hexagon effect
@@ -2038,8 +2108,9 @@
                         iconMapping: ICON_MAPPING,
                         pickable: true,
                         onHover: handleHover,
+                        onClick: handleClick,
                         updateTriggers: {
-                            getColor: [colorMode, hoveredRoute, selectedRoute]
+                            getColor: [colorMode, hoveredRoute, selectedRoute, selectedPoint]
                         }
                     });
                     layers.push(sourceLayer);
@@ -2051,30 +2122,46 @@
                         getPosition: d => d.position,
                         getIcon: d => 'triangle_down',
                         getColor: d => {
-                            // Check if this point belongs to highlighted route
-                            const highlightedRoute = selectedRoute || hoveredRoute;
-                            let isHighlighted = !highlightedRoute;
+                            // Check if this point should be highlighted
+                            let isHighlighted = true;
                             
-                            if (highlightedRoute && d.routes) {
-                                isHighlighted = d.routes.some(r => 
-                                    r.source.name === highlightedRoute.source.name && 
-                                    r.destination.name === highlightedRoute.destination.name
+                            // Priority 1: Point selection
+                            if (selectedPoint) {
+                                if (selectedPoint.type === 'destination') {
+                                    // Highlight this destination point if it matches selected point
+                                    // OR if this destination's routes include the selected destination
+                                    isHighlighted = (d.name === selectedPoint.name) || 
+                                        (d.routes && d.routes.some(r => r.destination.name === selectedPoint.name));
+                                } else if (selectedPoint.type === 'source') {
+                                    // Highlight destination points that receive routes from selected source
+                                    isHighlighted = d.routes && d.routes.some(r => r.source.name === selectedPoint.name);
+                                }
+                            }
+                            // Priority 2: Route selection
+                            else if (selectedRoute) {
+                                isHighlighted = d.routes && d.routes.some(r => 
+                                    r.source.name === selectedRoute.source.name && 
+                                    r.destination.name === selectedRoute.destination.name
+                                );
+                            }
+                            // Priority 3: Hover
+                            else if (hoveredRoute) {
+                                isHighlighted = d.routes && d.routes.some(r => 
+                                    r.source.name === hoveredRoute.source.name && 
+                                    r.destination.name === hoveredRoute.destination.name
                                 );
                             }
                             
                             // Color based on mode
                             let color;
                             if (colorMode === 'rural_urban') {
-                                // Color by location type: Urban = yellow, Rural = blue
                                 color = getLocationColor(d.is_urban);
                             } else if (colorMode === 'source_destination') {
-                                // All destinations are red
                                 color = getPointTypeColor(false); // false = destination
                             } else {
-                                // International mode: use location color
                                 color = getLocationColor(d.is_urban);
                             }
-                            const alpha = isHighlighted ? 180 : 10;
+                            const alpha = isHighlighted ? 200 : 5;
                             return [color[0], color[1], color[2], alpha];
                         },
                         getSize: 22, // Same size as source for perfect hexagon
@@ -2088,8 +2175,9 @@
                         iconMapping: ICON_MAPPING,
                         pickable: true,
                         onHover: handleHover,
+                        onClick: handleClick,
                         updateTriggers: {
-                            getColor: [colorMode, hoveredRoute, selectedRoute]
+                            getColor: [colorMode, hoveredRoute, selectedRoute, selectedPoint]
                         }
                     });
                     layers.push(destLayer);
@@ -2165,24 +2253,43 @@
 
         function handleClick(info) {
             if (info.object && info.object.source && info.object.destination) {
-                // Get the original route (not the segment)
+                // Clicked on a route (arc)
                 const clickedRoute = info.object._segment ? 
                     filteredRoutes.find(r => 
                         r.source.name === info.object.source.name && 
                         r.destination.name === info.object.destination.name
                     ) : info.object;
                 
-                // Toggle selection
+                // Toggle route selection, clear point selection
+                selectedPoint = null;
                 if (selectedRoute === clickedRoute) {
-                    selectedRoute = null; // Deselect if clicking the same route
+                    selectedRoute = null;
                 } else {
                     selectedRoute = clickedRoute;
                 }
                 updateVisualization();
+                
+            } else if (info.object && info.object.name && info.object.type) {
+                // Clicked on a point (source or destination)
+                const clickedPoint = {
+                    name: info.object.name,
+                    type: info.object.type
+                };
+                
+                // Toggle point selection, clear route selection
+                selectedRoute = null;
+                if (selectedPoint && selectedPoint.name === clickedPoint.name && selectedPoint.type === clickedPoint.type) {
+                    selectedPoint = null; // Deselect if clicking same point
+                } else {
+                    selectedPoint = clickedPoint;
+                }
+                updateVisualization();
+                
             } else {
-                // Click on empty space - clear selection
-                if (selectedRoute) {
+                // Click on empty space - clear all selections
+                if (selectedRoute || selectedPoint) {
                     selectedRoute = null;
+                    selectedPoint = null;
                     updateVisualization();
                 }
             }
@@ -2538,4 +2645,5 @@
     </script>
 </body>
 </html>
+
 
