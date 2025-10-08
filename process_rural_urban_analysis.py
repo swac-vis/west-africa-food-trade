@@ -2,10 +2,90 @@
 """
 Enhanced food flows processing with Rural-Urban analysis
 Adds classification of flows by rural/urban patterns
+Now with OSRM real route paths
+New hierarchical data structure by year
 """
 
 import pandas as pd
 import json
+import requests
+import time
+import os
+from pathlib import Path
+from collections import defaultdict
+
+# OSRM路径缓存
+ROUTE_CACHE = {}
+CACHE_FILE = 'osrm_route_cache.json'
+
+def load_route_cache():
+    """加载OSRM路径缓存"""
+    global ROUTE_CACHE
+    if os.path.exists(CACHE_FILE):
+        with open(CACHE_FILE, 'r') as f:
+            ROUTE_CACHE = json.load(f)
+        print(f"Loaded {len(ROUTE_CACHE)} cached routes")
+
+def save_route_cache():
+    """保存OSRM路径缓存"""
+    with open(CACHE_FILE, 'w') as f:
+        json.dump(ROUTE_CACHE, f)
+    print(f"Saved {len(ROUTE_CACHE)} routes to cache")
+
+def get_osrm_route(source_coords, via_coords, dest_coords, route_id):
+    """
+    获取经过三点的OSRM路径
+    
+    Args:
+        source_coords: [lon, lat] 起点
+        via_coords: [lon, lat] 经过点
+        dest_coords: [lon, lat] 终点
+        route_id: 路线ID用于缓存
+    
+    Returns:
+        {
+            'path': [[lon, lat], ...],  # 路径坐标
+            'distance_km': float,        # 距离（公里）
+            'duration_hours': float      # 时长（小时）
+        }
+        或 None（失败时）
+    """
+    # 检查缓存
+    cache_key = f"{route_id}"
+    if cache_key in ROUTE_CACHE:
+        return ROUTE_CACHE[cache_key]
+    
+    try:
+        # 构建OSRM请求
+        coords_str = f"{source_coords[0]},{source_coords[1]};{via_coords[0]},{via_coords[1]};{dest_coords[0]},{dest_coords[1]}"
+        url = f"http://router.project-osrm.org/route/v1/driving/{coords_str}"
+        params = {
+            'overview': 'full',
+            'geometries': 'geojson'
+        }
+        
+        response = requests.get(url, params=params, timeout=10)
+        
+        if response.ok:
+            data = response.json()
+            if data.get('routes'):
+                route = data['routes'][0]
+                result = {
+                    'path': route['geometry']['coordinates'],
+                    'distance_km': route['distance'] / 1000,  # 米转公里
+                    'duration_hours': route['duration'] / 3600  # 秒转小时
+                }
+                
+                # 缓存结果
+                ROUTE_CACHE[cache_key] = result
+                return result
+        
+        print(f"  ⚠️  OSRM failed for route {route_id}: {response.status_code}")
+        return None
+        
+    except Exception as e:
+        print(f"  ❌ Error getting OSRM route {route_id}: {e}")
+        return None
 
 def load_and_clean_data(csv_path):
     """Load and clean the full dataset"""
@@ -286,9 +366,159 @@ def create_routes_with_rural_urban(df, min_flows=1):
     return routes
 
 
+def create_hierarchical_data_by_year(df):
+    """
+    Create hierarchical data structure organized by year
+    
+    Structure:
+    {
+      "2013": {
+        "route_id_1": {
+          "source": {...},
+          "destination": {...},
+          "via_city": {...},
+          "flow": total_flows,
+          "quantity": total_quantity,
+          "commodity": {
+            "Maize": {
+              "category": "Cereal",
+              "quantity": quantity,
+              "transport": {
+                "Truck": {
+                  "quantity": quantity,
+                  "flow": flow_count
+                }
+              }
+            }
+          },
+          "is_international": true/false,
+          "flow_type": "urban-urban",
+          # "path": [...] # Will be added later with OSRM
+        }
+      }
+    }
+    """
+    print("Creating hierarchical data structure by year...")
+    
+    # Build city coordinates lookup
+    city_coords_lookup = build_city_coordinates_lookup(df)
+    
+    # Round coordinates for aggregation
+    df['src_x_rounded'] = df['Source x'].round(3)
+    df['src_y_rounded'] = df['Source y'].round(3)
+    df['dest_x_rounded'] = df['Destination x'].round(3)
+    df['dest_y_rounded'] = df['Destination y'].round(3)
+    df['city_grouped'] = df['city'].fillna('direct')
+    
+    # Result structure: year -> route_id -> data
+    data_by_year = defaultdict(dict)
+    
+    # Group by coordinates, city, flow_type, and year
+    grouped = df.groupby([
+        'src_x_rounded',
+        'src_y_rounded',
+        'dest_x_rounded',
+        'dest_y_rounded',
+        'city_grouped',
+        'flow_type',
+        'year_clean'
+    ])
+    
+    for key, route_df in grouped:
+        src_x, src_y, dest_x, dest_y, city_name, flow_type, year = key
+        
+        if pd.isna(year):
+            continue
+        
+        year_str = str(int(year))
+        
+        # Create route_id based on coordinates
+        route_id = f"r_{src_x}_{src_y}_{dest_x}_{dest_y}_{city_name}"
+        
+        # Get names (mode = most frequent)
+        source_name = route_df['source_nam'].mode()[0] if len(route_df['source_nam'].mode()) > 0 else 'Unknown'
+        dest_name = route_df['destination_name'].mode()[0] if len(route_df['destination_name'].mode()) > 0 else 'Unknown'
+        src_country = route_df['Source_country_name'].mode()[0] if len(route_df['Source_country_name'].mode()) > 0 else 'Unknown'
+        dest_country = route_df['Dest_country_name'].mode()[0] if len(route_df['Dest_country_name'].mode()) > 0 else 'Unknown'
+        
+        # Check if route_id already exists for this year (aggregate across all groups)
+        if route_id not in data_by_year[year_str]:
+            # Initialize route data
+            data_by_year[year_str][route_id] = {
+                'source': {
+                    'name': source_name,
+                    'coordinates': [float(src_x), float(src_y)],
+                    'country': src_country,
+                    'is_urban': str(route_df['source_wit'].mode()[0]).lower() == 'yes' if 'source_wit' in route_df.columns and len(route_df['source_wit'].mode()) > 0 else False
+                },
+                'destination': {
+                    'name': dest_name,
+                    'coordinates': [float(dest_x), float(dest_y)],
+                    'country': dest_country,
+                    'is_urban': str(route_df['destination_within_urban_boundary'].mode()[0]).lower() == 'yes' if 'destination_within_urban_boundary' in route_df.columns and len(route_df['destination_within_urban_boundary'].mode()) > 0 else False
+                },
+                'via_city': {
+                    'name': city_name if city_name != 'direct' else None,
+                    'coordinates': city_coords_lookup.get(city_name, [None, None]) if city_name != 'direct' else None
+                },
+                'flow': 0,
+                'quantity': 0.0,
+                'commodity': {},
+                'is_international': src_country != dest_country,
+                'flow_type': flow_type,
+                # 'path': []  # Commented out for later OSRM processing
+            }
+        
+        # Aggregate flows and quantity
+        route_data = data_by_year[year_str][route_id]
+        route_data['flow'] += len(route_df)
+        route_data['quantity'] += float(route_df['total_quantity'].sum()) if not route_df['total_quantity'].isna().all() else 0
+        
+        # Process commodities
+        for _, row in route_df.iterrows():
+            commodity = row['commodit_1'] if pd.notna(row['commodit_1']) else 'Unknown'
+            category = row['commodit_2'] if pd.notna(row['commodit_2']) else 'Unknown'
+            transport = row['means_of_t'] if pd.notna(row['means_of_t']) else 'Unknown'
+            quantity_val = float(row['total_quantity']) if pd.notna(row['total_quantity']) else 0
+            
+            # Initialize commodity if not exists
+            if commodity not in route_data['commodity']:
+                route_data['commodity'][commodity] = {
+                    'category': category,
+                    'quantity': 0.0,
+                    'transport': {}
+                }
+            
+            # Aggregate commodity quantity
+            route_data['commodity'][commodity]['quantity'] += quantity_val
+            
+            # Initialize transport if not exists
+            if transport not in route_data['commodity'][commodity]['transport']:
+                route_data['commodity'][commodity]['transport'][transport] = {
+                    'quantity': 0.0,
+                    'flow': 0
+                }
+            
+            # Aggregate transport data
+            route_data['commodity'][commodity]['transport'][transport]['quantity'] += quantity_val
+            route_data['commodity'][commodity]['transport'][transport]['flow'] += 1
+    
+    # Convert defaultdict to regular dict
+    result = {year: dict(routes) for year, routes in data_by_year.items()}
+    
+    # Print summary
+    total_routes = sum(len(routes) for routes in result.values())
+    print(f"   Created {total_routes} routes across {len(result)} years")
+    for year in sorted(result.keys()):
+        print(f"     {year}: {len(result[year])} routes")
+    
+    return result
+
+
 def main():
     """Main processing function"""
-    csv_path = 'Karg_food_flows_locations.csv'
+    # Use the fixed CSV with corrected encoding
+    csv_path = 'Karg_food_flows_locations_fixed.csv'
     
     # Load and analyze
     df = load_and_clean_data(csv_path)
@@ -306,14 +536,89 @@ def main():
     for flow_type, data in overall_analysis['flow_patterns'].items():
         print(f"   {data['label']:20s}: {data['count']:6,} ({data['percentage']:5.2f}%)")
     
-    # Create route file with rural-urban info
-    print("\n2. Creating Route File")
+    # Create route files
+    print("\n2. Creating Route Files")
     
     # All routes (only file needed for visualization)
     all_routes = create_routes_with_rural_urban(df_with_types, min_flows=1)
-    with open('food_flows_all_routes_rural_urban.json', 'w', encoding='utf-8') as f:
+    
+    # NEW: Create hierarchical data structure by year
+    print("\n3. Creating Hierarchical Data Structure by Year")
+    hierarchical_data = create_hierarchical_data_by_year(df_with_types)
+    
+    # OSRM路径获取 (可选)
+    import sys
+    use_osrm = '--osrm' in sys.argv
+    top_100_only = '--top100' in sys.argv
+    
+    if use_osrm:
+        print("\n3. Fetching OSRM Real Route Paths...")
+        load_route_cache()
+        
+        # 选择要处理的routes
+        if top_100_only:
+            routes_to_process = sorted(all_routes, key=lambda x: x['flows'], reverse=True)[:100]
+            print(f"   Processing TOP 100 routes only")
+        else:
+            routes_to_process = all_routes
+            print(f"   Processing ALL {len(all_routes)} routes")
+        
+        success_count = 0
+        fail_count = 0
+        batch_size = 50  # 每50个保存一次缓存
+        
+        for idx, route in enumerate(routes_to_process, 1):
+            source_coords = route['source']['coordinates']
+            via_coords = route['via_city']['coordinates']
+            dest_coords = route['destination']['coordinates']
+            route_id = f"{route['source']['name']}-{route['via_city']['name']}-{route['destination']['name']}"
+            
+            # 获取OSRM路径
+            osrm_result = get_osrm_route(source_coords, via_coords, dest_coords, route_id)
+            
+            if osrm_result:
+                route['path'] = osrm_result['path']
+                route['distance_km'] = osrm_result['distance_km']
+                route['duration_hours'] = osrm_result['duration_hours']
+                success_count += 1
+                print(f"   [{idx}/{len(routes_to_process)}] ✓ {route_id[:50]:50s} ({len(osrm_result['path'])} points, {osrm_result['distance_km']:.1f}km)")
+            else:
+                # 失败时保留直线（不添加path字段，前端会fallback到ArcLayer）
+                fail_count += 1
+                print(f"   [{idx}/{len(routes_to_process)}] ✗ {route_id[:50]:50s} (using straight line)")
+            
+            # 分批保存缓存
+            if idx % batch_size == 0:
+                save_route_cache()
+                print(f"   💾 Saved cache at {idx}/{len(routes_to_process)}")
+            
+            # 限流：每次请求间隔0.1秒
+            time.sleep(0.1)
+        
+        # 最后保存一次缓存
+        save_route_cache()
+        
+        print(f"\n   OSRM Summary:")
+        print(f"   ✓ Success: {success_count}")
+        print(f"   ✗ Failed:  {fail_count}")
+        print(f"   📊 Success Rate: {success_count/(success_count+fail_count)*100:.1f}%")
+    
+    # 保存JSON文件
+    print("\n4. Saving Output Files")
+    
+    # Save original format (for backward compatibility)
+    output_file = 'food_flows_all_routes_rural_urban_with_paths.json' if use_osrm else 'food_flows_all_routes_rural_urban.json'
+    with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(all_routes, f, indent=2, ensure_ascii=False)
-    print(f"   ✓ Saved food_flows_all_routes_rural_urban.json ({len(all_routes)} routes)")
+    print(f"   ✓ Saved {output_file} ({len(all_routes)} routes)")
+    
+    # Save new hierarchical format by year
+    hierarchical_file = 'food_flows_by_year.json'
+    with open(hierarchical_file, 'w', encoding='utf-8') as f:
+        json.dump(hierarchical_data, f, indent=2, ensure_ascii=False)
+    
+    total_routes_hierarchical = sum(len(routes) for routes in hierarchical_data.values())
+    print(f"   ✓ Saved {hierarchical_file} ({total_routes_hierarchical} routes across {len(hierarchical_data)} years)")
     
     print("\n" + "="*70)
     print("✅ RURAL-URBAN ANALYSIS COMPLETE!")
@@ -322,6 +627,9 @@ def main():
     print(f"  Total flows analyzed: {len(df_with_types):,}")
     for flow_type, data in overall_analysis['flow_patterns'].items():
         print(f"  {data['label']:20s}: {data['count']:6,} flows ({data['percentage']:5.2f}%)")
+    print(f"\nOutput Files:")
+    print(f"  - {output_file}")
+    print(f"  - {hierarchical_file}")
 
 if __name__ == '__main__':
     main()

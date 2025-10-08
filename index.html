@@ -336,6 +336,119 @@
             font-weight: 600;
         }
 
+        /* 横向堆叠条形图 */
+        .stacked-bar-container {
+            margin: 6px 0;
+        }
+
+        .stacked-bar-chart {
+            display: flex;
+            width: 100%;
+            height: 28px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .stacked-bar-segment {
+            height: 100%;
+            transition: all 0.2s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .stacked-bar-segment:last-child {
+            border-right: none;
+        }
+
+        .stacked-bar-segment:hover {
+            filter: brightness(1.1);
+        }
+
+        .stacked-bar-segment.selected {
+            filter: brightness(1.2);
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);
+        }
+
+        .stacked-bar-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1.2;
+        }
+
+        .stacked-bar-label-year {
+            font-size: 0.7rem;
+        }
+
+        .stacked-bar-label-count {
+            font-size: 0.6rem;
+            opacity: 0.9;
+        }
+
+        .stacked-bar-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 6px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .legend-item-compact {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.65rem;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 3px;
+            transition: all 0.15s;
+        }
+
+        .legend-item-compact:hover {
+            background: white;
+        }
+
+        .legend-item-compact.selected {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .legend-color-box {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .legend-item-compact .legend-label {
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .legend-item-compact.selected .legend-label {
+            color: #007bff;
+            font-weight: 600;
+        }
+
+        .legend-item-compact .legend-value {
+            color: #6c757d;
+            margin-left: 2px;
+        }
 
         .stats-grid {
             display: grid;
@@ -541,8 +654,8 @@
     <div class="header">
         <h1>🌾 African Food Flows</h1>
         <div class="subtitle">
-            Visualizing food trade across 19 African countries from 2013-2017. 
-            Complete dataset with 80,762 recorded flows.
+            Visualizing food trade in west africa from 2013-2017. 
+            Complete dataset with 80,762 recorded trades.
         </div>
     </div>
 
@@ -582,21 +695,9 @@
             <!-- Rural-Urban Flow Pattern (always visible) -->
             <div class="control-group" id="ruralUrbanFilterGroup">
                 <label>Flow Pattern</label>
-                <div class="stats-chart">
-                    <div class="stat-bar rural-urban-bar active" data-type="all" onclick="selectRuralUrbanStat(this, 'all')">
-                        <div class="stat-bar-label">All</div>
-                    </div>
-                    <div class="stat-bar rural-urban-bar" data-type="rural_to_urban" onclick="selectRuralUrbanStat(this, 'rural_to_urban')">
-                        <div class="stat-bar-label">R→U</div>
-                    </div>
-                    <div class="stat-bar rural-urban-bar" data-type="urban_to_rural" onclick="selectRuralUrbanStat(this, 'urban_to_rural')">
-                        <div class="stat-bar-label">U→R</div>
-                    </div>
-                    <div class="stat-bar rural-urban-bar" data-type="rural_to_rural" onclick="selectRuralUrbanStat(this, 'rural_to_rural')">
-                        <div class="stat-bar-label">R→R</div>
-                    </div>
-                    <div class="stat-bar rural-urban-bar" data-type="urban_to_urban" onclick="selectRuralUrbanStat(this, 'urban_to_urban')">
-                        <div class="stat-bar-label">U→U</div>
+                <div class="stacked-bar-container">
+                    <div class="stacked-bar-chart" id="ruralUrbanStackedBar">
+                        <!-- Dynamically generated -->
                     </div>
                 </div>
             </div>
@@ -604,15 +705,9 @@
             <!-- Trade Type (always visible) -->
             <div class="control-group" id="tradeTypeFilterGroup">
                 <label>Trade Type</label>
-                <div class="stats-chart">
-                    <div class="stat-bar trade-type-bar active" data-type="all" onclick="selectTradeTypeStat(this, 'all')">
-                        <div class="stat-bar-label">All</div>
-                    </div>
-                    <div class="stat-bar trade-type-bar" data-type="international" onclick="selectTradeTypeStat(this, 'international')">
-                        <div class="stat-bar-label">Intl</div>
-                    </div>
-                    <div class="stat-bar trade-type-bar" data-type="domestic" onclick="selectTradeTypeStat(this, 'domestic')">
-                        <div class="stat-bar-label">Domestic</div>
+                <div class="stacked-bar-container">
+                    <div class="stacked-bar-chart" id="tradeTypeStackedBar">
+                        <!-- Dynamically generated -->
                     </div>
                 </div>
             </div>
@@ -620,24 +715,9 @@
             <!-- Year Distribution -->
             <div class="control-group">
                 <label>Year Distribution</label>
-                <div class="stats-chart">
-                    <div class="stat-bar active" onclick="selectYearStat(this, 'all')">
-                        <div class="stat-bar-label">All</div>
-                    </div>
-                    <div class="stat-bar" onclick="selectYearStat(this, '2013')">
-                        <div class="stat-bar-label">2013</div>
-                    </div>
-                    <div class="stat-bar" onclick="selectYearStat(this, '2014')">
-                        <div class="stat-bar-label">2014</div>
-                    </div>
-                    <div class="stat-bar" onclick="selectYearStat(this, '2015')">
-                        <div class="stat-bar-label">2015</div>
-                    </div>
-                    <div class="stat-bar" onclick="selectYearStat(this, '2016')">
-                        <div class="stat-bar-label">2016</div>
-                    </div>
-                    <div class="stat-bar" onclick="selectYearStat(this, '2017')">
-                        <div class="stat-bar-label">2017</div>
+                <div class="stacked-bar-container">
+                    <div class="stacked-bar-chart" id="yearStackedBar">
+                        <!-- Dynamically generated -->
                     </div>
                 </div>
             </div>
@@ -749,9 +829,9 @@
         <div class="control-group">
             <label>
                 Arc Thickness
-                <span class="range-value" id="arcWidthValue">0.5</span>
+                <span class="range-value" id="arcWidthValue">0.3</span>
             </label>
-            <input type="range" id="arcWidth" min="0.1" max="8" value="0.5" step="0.1">
+            <input type="range" id="arcWidth" min="0.1" max="5" value="0.3" step="0.1">
         </div>
 
         <div class="checkbox-group">
@@ -771,7 +851,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="totalFlows">-</div>
-                <div class="stat-label">Flows</div>
+                <div class="stat-label">Quantity</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="intlFlows">-</div>
@@ -843,20 +923,28 @@
 
 
     <script>
-        const {DeckGL, ArcLayer, ScatterplotLayer, HeatmapLayer, IconLayer} = deck;
+        const {DeckGL, ArcLayer, ScatterplotLayer, HeatmapLayer, IconLayer, PathLayer} = deck;
 
-        let allData = null; // Single data source loaded once
+        let allDataByYear = null; // New hierarchical data: year → route_id → route data
+        let allRoutesFlat = []; // Flattened array of all routes for compatibility
         let currentDataSource = 'all';
         let filteredRoutes = [];
         let deckgl = null;
         let colorMode = 'source_destination'; // Color mode: 'source_destination', 'rural_urban', or 'international'
+        
+        // Global statistics for legend (all available options without any filters)
+        let globalStats = {
+            years: new Map(),
+            ruralUrban: new Map(),
+            tradeTypes: new Map()
+        };
         let hoveredRoute = null; // Currently hovered route
         let selectedRoute = null; // Currently selected (clicked) route
         let selectedPoint = null; // Currently selected point {position: [lon, lat], type: 'source'|'destination'}
         
 
-        // Single data file - all filtering done client-side for efficiency
-        const SINGLE_DATA_FILE = 'food_flows_all_routes_rural_urban.json';
+        // New hierarchical data file - organized by year
+        const DATA_FILE = 'food_flows_by_year.json';
 
         // Global commodity mapping (lowercase key -> Exact data name from JSON)
         const COMMODITY_MAP = {
@@ -908,6 +996,33 @@
             'bambara_beans': 'Bambara beans'
         };
 
+        // Color configurations for stacked bar charts - use blue tones
+        const STACKED_BAR_COLORS = {
+            '2013': '#4A90E2',
+            '2014': '#5B9FED', 
+            '2015': '#6CAEF8',
+            '2016': '#7DBDFF',
+            '2017': '#8ECCFF',
+            'rural_to_urban': '#4A90E2',
+            'urban_to_rural': '#5B9FED',
+            'rural_to_rural': '#6CAEF8',
+            'urban_to_urban': '#7DBDFF',
+            'international': '#4A90E2',
+            'domestic': '#6CAEF8'
+        };
+
+        const FLOW_PATTERN_LABELS = {
+            'rural_to_urban': 'R→U',
+            'urban_to_rural': 'U→R',
+            'rural_to_rural': 'R→R',
+            'urban_to_urban': 'U→U'
+        };
+
+        const TRADE_TYPE_LABELS = {
+            'international': 'International',
+            'domestic': 'Domestic'
+        };
+
         // Reverse mapping (Data name -> Display name)
         const COMMODITY_DISPLAY_MAP = {};
         Object.entries(COMMODITY_MAP).forEach(([key, value]) => {
@@ -921,42 +1036,47 @@
          * Initialize all stat bars with actual data on page load
          */
         function initializeStatBars() {
-            if (!allData) return;
+            if (!allRoutesFlat || allRoutesFlat.length === 0) return;
             
-            // Calculate all statistics from allData
+            // Calculate all statistics from allRoutesFlat
             const stats = {
                 years: new Map(),
                 ruralUrban: new Map(),
                 tradeTypes: new Map(),
                 routeFilters: {
-                    all: allData.length,
-                    major: allData.filter(d => (d.flows || 0) >= 10).length,
+                    all: allRoutesFlat.length,
+                    major: allRoutesFlat.filter(d => (d.flows || 0) >= 10).length,
                     top100: 100,
-                    heatmap: allData.length  // Same as all for visual purposes
+                    heatmap: allRoutesFlat.length  // Same as all for visual purposes
                 }
             };
             
-            allData.forEach(route => {
-                // Year statistics
+            allRoutesFlat.forEach(route => {
+                // Year statistics - use quantity instead of flows
                 if (route.by_year) {
                     Object.entries(route.by_year).forEach(([year, data]) => {
                         const count = stats.years.get(year) || 0;
-                        stats.years.set(year, count + data.flows);
+                        stats.years.set(year, count + (data.quantity || 0));
                     });
                 }
                 
-                // Rural-Urban statistics
+                // Rural-Urban statistics - use quantity instead of flows
                 const flowType = route.flow_type;
                 if (flowType) {
                     const count = stats.ruralUrban.get(flowType) || 0;
-                    stats.ruralUrban.set(flowType, count + route.flows);
+                    stats.ruralUrban.set(flowType, count + (route.quantity || 0));
                 }
                 
-                // Trade type statistics
+                // Trade type statistics - use quantity instead of flows
                 const trade = route.is_international ? 'international' : 'domestic';
                 const tradeCount = stats.tradeTypes.get(trade) || 0;
-                stats.tradeTypes.set(trade, tradeCount + route.flows);
+                stats.tradeTypes.set(trade, tradeCount + (route.quantity || 0));
             });
+            
+            // Save global stats for legend display
+            globalStats.years = new Map(stats.years);
+            globalStats.ruralUrban = new Map(stats.ruralUrban);
+            globalStats.tradeTypes = new Map(stats.tradeTypes);
             
             // Update Year stat bars
             updateYearFilterOptions(stats.years);
@@ -975,26 +1095,26 @@
         }
 
         function generateFilterOptionsFromData() {
-            if (!allData) return;
+            if (!allRoutesFlat || allRoutesFlat.length === 0) return;
             
-            // Calculate commodity counts
+            // Calculate commodity counts - use quantity for statistics
             const commodityCounts = new Map();
-            allData.forEach(route => {
+            allRoutesFlat.forEach(route => {
                 if (route.by_commodity) {
                     Object.entries(route.by_commodity).forEach(([commodity, data]) => {
                         const count = commodityCounts.get(commodity) || 0;
-                        commodityCounts.set(commodity, count + data.flows);
+                        commodityCounts.set(commodity, count + (data.quantity || 0));
                     });
                 }
             });
             
-            // Calculate transport counts
+            // Calculate transport counts - use quantity for statistics
             const transportCounts = new Map();
-            allData.forEach(route => {
+            allRoutesFlat.forEach(route => {
                 if (route.by_transport) {
                     Object.entries(route.by_transport).forEach(([transport, data]) => {
                         const count = transportCounts.get(transport) || 0;
-                        transportCounts.set(transport, count + data.flows);
+                        transportCounts.set(transport, count + (data.quantity || 0));
                     });
                 }
             });
@@ -1029,7 +1149,7 @@
             allCard.onclick = function() { selectCommodity(this, 'all'); };
             allCard.innerHTML = `
                 <div class="commodity-name">All</div>
-                <div class="commodity-count">${formatCount(totalFlows)}</div>
+                <div class="commodity-count">${formatQuantity(totalFlows)}</div>
             `;
             grid.appendChild(allCard);
             
@@ -1062,7 +1182,7 @@
                 card.onclick = function() { selectCommodity(this, commodityKey); };
                 card.innerHTML = `
                     <div class="commodity-name">${commodity}</div>
-                    <div class="commodity-count">${formatCount(count)}</div>
+                    <div class="commodity-count">${formatQuantity(count)}</div>
                     <div class="commodity-bar" style="width: ${intensity}%; height: 2px; background: #6c757d; margin-top: 3px; border-radius: 1px;"></div>
                 `;
                 grid.appendChild(card);
@@ -1184,13 +1304,177 @@
             }
         }
 
-        // Load all data once and cache it
+        // Load hierarchical data and convert to flat array for compatibility
         async function loadAllData() {
-            if (allData) return allData; // Already loaded
+            if (allDataByYear) return allRoutesFlat; // Already loaded
             
-            const response = await fetch(SINGLE_DATA_FILE);
-            allData = await response.json();
-            return allData;
+            const response = await fetch(DATA_FILE);
+            allDataByYear = await response.json();
+            
+            // Convert hierarchical structure to flat array
+            allRoutesFlat = [];
+            Object.entries(allDataByYear).forEach(([year, routes]) => {
+                Object.entries(routes).forEach(([routeId, routeData]) => {
+                    // Convert new structure to old structure for compatibility
+                    const route = {
+                        source: routeData.source,
+                        destination: routeData.destination,
+                        via_city: routeData.via_city,
+                        flows: routeData.flow,
+                        quantity: routeData.quantity,
+                        is_international: routeData.is_international,
+                        flow_type: routeData.flow_type,
+                        // path: routeData.path,  // Will be added later with OSRM
+                        
+                        // Convert commodity structure
+                        commodities: {},
+                        by_commodity: {},
+                        
+                        // Store all years this route appears in
+                        years: [parseInt(year)],
+                        
+                        // Transport modes from commodity data
+                        transport_modes: {},
+                        by_transport: {},
+                        
+                        // Store by_year for filtering
+                        by_year: {}
+                    };
+                    
+                    // Extract commodities and their transports
+                    Object.entries(routeData.commodity || {}).forEach(([commName, commData]) => {
+                        route.commodities[commName] = commData.quantity || 0;
+                        
+                        // Calculate total flows for this commodity (sum of all transport flows)
+                        let commodityFlows = 0;
+                        Object.entries(commData.transport || {}).forEach(([transName, transData]) => {
+                            commodityFlows += transData.flow || 0;
+                        });
+                        
+                        route.by_commodity[commName] = {
+                            flows: commodityFlows,  // Real flow count
+                            quantity: commData.quantity || 0,  // Quantity
+                            transport_modes: commData.transport || {},
+                            category: commData.category
+                        };
+                        
+                        // Aggregate transport modes
+                        Object.entries(commData.transport || {}).forEach(([transName, transData]) => {
+                            if (!route.transport_modes[transName]) {
+                                route.transport_modes[transName] = 0;
+                            }
+                            route.transport_modes[transName] += transData.flow || 0;
+                            
+                            if (!route.by_transport[transName]) {
+                                route.by_transport[transName] = {
+                                    flows: 0,
+                                    quantity: 0,
+                                    commodities: {},
+                                    years: []
+                                };
+                            }
+                            route.by_transport[transName].flows += transData.flow || 0;
+                            route.by_transport[transName].quantity += transData.quantity || 0;
+                            route.by_transport[transName].commodities[commName] = transData.quantity || 0;  // Use quantity not flow
+                            if (!route.by_transport[transName].years.includes(parseInt(year))) {
+                                route.by_transport[transName].years.push(parseInt(year));
+                            }
+                        });
+                    });
+                    
+                    // Get main transport mode
+                    if (Object.keys(route.transport_modes).length > 0) {
+                        route.main_transport = Object.entries(route.transport_modes)
+                            .reduce((a, b) => a[1] > b[1] ? a : b)[0];
+                    }
+                    
+                    // Store year-specific data
+                    route.by_year[year] = {
+                        flows: routeData.flow,
+                        quantity: routeData.quantity,
+                        commodities: {},
+                        commodities_flows: {},  // NEW: separate flows for commodities
+                        transport_modes: {}
+                    };
+                    
+                    Object.entries(routeData.commodity || {}).forEach(([commName, commData]) => {
+                        // Store quantity
+                        route.by_year[year].commodities[commName] = commData.quantity || 0;
+                        
+                        // Calculate and store flows for this commodity
+                        let commFlows = 0;
+                        Object.entries(commData.transport || {}).forEach(([transName, transData]) => {
+                            commFlows += transData.flow || 0;
+                            
+                            if (!route.by_year[year].transport_modes[transName]) {
+                                route.by_year[year].transport_modes[transName] = 0;
+                            }
+                            route.by_year[year].transport_modes[transName] += transData.flow || 0;
+                        });
+                        
+                        route.by_year[year].commodities_flows[commName] = commFlows;
+                    });
+                    
+                    // Check if this route already exists (same source/dest/via_city but different year)
+                    const existing = allRoutesFlat.find(r => 
+                        r.source.name === route.source.name &&
+                        r.destination.name === route.destination.name &&
+                        (r.via_city?.name || null) === (route.via_city?.name || null)
+                    );
+                    
+                    if (existing) {
+                        // Merge with existing route
+                        existing.flows += route.flows;
+                        existing.quantity += route.quantity;
+                        existing.years.push(parseInt(year));
+                        existing.years = [...new Set(existing.years)].sort();
+                        
+                        // Merge commodities
+                        Object.entries(route.commodities).forEach(([comm, qty]) => {
+                            existing.commodities[comm] = (existing.commodities[comm] || 0) + qty;
+                        });
+                        
+                        // Merge transport modes
+                        Object.entries(route.transport_modes).forEach(([trans, count]) => {
+                            existing.transport_modes[trans] = (existing.transport_modes[trans] || 0) + count;
+                        });
+                        
+                        // Merge by_year
+                        existing.by_year[year] = route.by_year[year];
+                        
+                        // Merge by_commodity (keep flows and quantity separate)
+                        Object.entries(route.by_commodity).forEach(([comm, data]) => {
+                            if (!existing.by_commodity[comm]) {
+                                existing.by_commodity[comm] = {
+                                    flows: data.flows || 0,
+                                    quantity: data.quantity || 0,
+                                    transport_modes: data.transport_modes || {},
+                                    category: data.category
+                                };
+                            } else {
+                                existing.by_commodity[comm].flows += (data.flows || 0);
+                                existing.by_commodity[comm].quantity += (data.quantity || 0);
+                            }
+                        });
+                        
+                        // Merge by_transport
+                        Object.entries(route.by_transport).forEach(([trans, data]) => {
+                            if (!existing.by_transport[trans]) {
+                                existing.by_transport[trans] = data;
+                            } else {
+                                existing.by_transport[trans].flows += data.flows;
+                                existing.by_transport[trans].quantity += data.quantity;
+                                existing.by_transport[trans].years = [...new Set([...existing.by_transport[trans].years, ...data.years])].sort();
+                            }
+                        });
+                    } else {
+                        allRoutesFlat.push(route);
+                    }
+                });
+            });
+            
+            console.log(`Loaded ${allRoutesFlat.length} unique routes from ${Object.keys(allDataByYear).length} years`);
+            return allRoutesFlat;
         }
 
         /**
@@ -1248,21 +1532,21 @@
 
         // Filter data based on source type (client-side)
         function getFilteredDataBySource(source) {
-            if (!allData) return [];
+            if (!allRoutesFlat || allRoutesFlat.length === 0) return [];
             
             if (source === 'heatmap') {
                 // Generate heatmap from all data dynamically
-                return generateHeatmapFromRoutes(allData);
+                return generateHeatmapFromRoutes(allRoutesFlat);
             } else if (source === 'all') {
-                return allData;
+                return allRoutesFlat;
             } else if (source === 'major') {
-                return allData.filter(d => (d.flows || 0) >= 10);
+                return allRoutesFlat.filter(d => (d.flows || 0) >= 10);
             } else if (source === 'top100') {
-                const sorted = [...allData].sort((a, b) => (b.flows || 0) - (a.flows || 0));
+                const sorted = [...allRoutesFlat].sort((a, b) => (b.flows || 0) - (a.flows || 0));
                 return sorted.slice(0, 100);
             }
             
-            return allData;
+            return allRoutesFlat;
         }
 
         function initDeckGL() {
@@ -1290,9 +1574,9 @@
 
             try {
                 // Load all data if not yet loaded
-                if (!allData) {
+                if (!allRoutesFlat || allRoutesFlat.length === 0) {
                     loadingEl.querySelector('.loading-text').textContent = 'Loading data...';
-                    loadingEl.querySelector('.loading-subtext').textContent = 'First-time loading (21MB)';
+                    loadingEl.querySelector('.loading-subtext').textContent = 'Loading hierarchical data...';
                     await loadAllData();
                 }
 
@@ -1352,6 +1636,7 @@
             // Start with full route data
             let displayData = {
                 flows: route.flows,
+                quantity: route.quantity,
                 commodities: route.commodities,
                 years: route.years,
                 transport_modes: route.transport_modes,
@@ -1364,6 +1649,7 @@
                 if (!yearData) return null; // Route has no data for this year
                 
                 displayData.flows = yearData.flows;
+                displayData.quantity = yearData.quantity || 0;
                 displayData.commodities = yearData.commodities;
                 displayData.transport_modes = yearData.transport_modes;
                 
@@ -1383,13 +1669,17 @@
                 if (filters.year && filters.year !== 'all') {
                     const yearData = route.by_year[filters.year];
                     if (yearData && yearData.transport_modes[filters.transport]) {
+                        // yearData.transport_modes stores flows
                         displayData.flows = yearData.transport_modes[filters.transport];
+                        // For quantity, use transportData's quantity (approximate)
+                        displayData.quantity = transportData.quantity || 0;
                         displayData.commodities = transportData.commodities; // Approximate
                     } else {
                         return null; // This transport not used in this year
                     }
                 } else {
                     displayData.flows = transportData.flows;
+                    displayData.quantity = transportData.quantity || 0;
                     displayData.commodities = transportData.commodities;
                     displayData.years = transportData.years;
                 }
@@ -1403,11 +1693,29 @@
                 
                 if (!commodityData) return null; // Route doesn't transport this commodity
                 
-                // For commodity filter, we show only this commodity
-                displayData.commodities = { [targetCommodity]: commodityData.flows };
-                displayData.flows = commodityData.flows;
+                // If year filter was already applied, do intersection
+                if (filters.year && filters.year !== 'all' && route.by_year && route.by_year[filters.year]) {
+                    const yearData = route.by_year[filters.year];
+                    if (yearData.commodities && yearData.commodities[targetCommodity]) {
+                        // yearData.commodities stores quantity
+                        const commodityQuantity = yearData.commodities[targetCommodity];
+                        displayData.quantity = commodityQuantity;
+                        displayData.commodities = { [targetCommodity]: commodityQuantity };
+                        displayData.transport_modes = yearData.transport_modes; // Approximate
+                        
+                        // Get flows for this commodity in this year
+                        displayData.flows = yearData.commodities_flows ? (yearData.commodities_flows[targetCommodity] || 0) : 0;
+                    } else {
+                        return null; // This commodity not transported in this year
+                    }
+                } else {
+                    // For commodity filter alone, we show only this commodity
+                displayData.commodities = { [targetCommodity]: commodityData.quantity };
+                displayData.flows = commodityData.flows;  // Real flow count
+                displayData.quantity = commodityData.quantity;  // Quantity
                 displayData.transport_modes = commodityData.transport_modes;
                 displayData.years = commodityData.years;
+                }
             }
 
             return displayData;
@@ -1428,11 +1736,11 @@
             
             // Start with routes based on currentDataSource (Route Filter)
             // For heatmap, use all routes; for others, use the filtered subset
-            let baseRoutes = allData;
+            let baseRoutes = allRoutesFlat;
             if (currentDataSource === 'major') {
-                baseRoutes = allData.filter(d => (d.flows || 0) >= 10);
+                baseRoutes = allRoutesFlat.filter(d => (d.flows || 0) >= 10);
             } else if (currentDataSource === 'top100') {
-                const sorted = [...allData].sort((a, b) => (b.flows || 0) - (a.flows || 0));
+                const sorted = [...allRoutesFlat].sort((a, b) => (b.flows || 0) - (a.flows || 0));
                 baseRoutes = sorted.slice(0, 100);
             }
             
@@ -1493,11 +1801,11 @@
             // For each filter type, calculate what's available if we REPLACE that filter
             // This gives accurate counts for "what if I select this option instead"
             
-            // Calculate available years (considering other filters, but replacing year filter)
+            // Calculate available years (considering ALL current filters including year)
             routes.forEach(route => {
-                // Skip if doesn't match non-year filters
+                // Skip if doesn't match any filters INCLUDING year
+                const targetCommodity = commodity !== 'all' && route.by_commodity ? COMMODITY_MAP[commodity] : null;
                 if (commodity !== 'all' && route.by_commodity) {
-                    const targetCommodity = COMMODITY_MAP[commodity];
                     if (!targetCommodity || !route.by_commodity[targetCommodity]) return;
                 }
                 if (transport !== 'all' && route.by_transport && !route.by_transport[transport]) return;
@@ -1507,11 +1815,38 @@
                     if (tradeType === 'domestic' && route.is_international) return;
                 }
                 
-                // Add available years with flow counts
+                // Add available years with quantity counts
                 if (route.by_year) {
                     Object.entries(route.by_year).forEach(([y, data]) => {
+                        // If year filter is active, only show that year
+                        if (year !== 'all' && y !== year) return;
+                        
+                        let quantityCount = data.quantity || 0;
+                        
+                        // If commodity is selected, estimate quantity for that commodity in this year
+                        if (targetCommodity && data.commodities && data.commodities[targetCommodity]) {
+                            // Estimate by proportion: (commodity flows / total flows) * year quantity
+                            const yearTotalFlows = Object.values(data.commodities).reduce((a, b) => a + b, 0);
+                            const commodityFlows = data.commodities[targetCommodity];
+                            quantityCount = yearTotalFlows > 0 ? (commodityFlows / yearTotalFlows) * quantityCount : 0;
+                        } else if (targetCommodity) {
+                            return; // This year doesn't have this commodity
+                        }
+                        
+                        // If transport is selected, estimate quantity for that transport in this year
+                        if (transport !== 'all' && data.transport_modes && data.transport_modes[transport]) {
+                            // If both commodity and transport are selected, we approximate
+                            if (!targetCommodity) {
+                                const yearTotalFlows = Object.values(data.transport_modes).reduce((a, b) => a + b, 0);
+                                const transportFlows = data.transport_modes[transport];
+                                quantityCount = yearTotalFlows > 0 ? (transportFlows / yearTotalFlows) * (data.quantity || 0) : 0;
+                            }
+                        } else if (transport !== 'all') {
+                            return; // This year doesn't have this transport mode
+                        }
+                        
                         const count = options.years.get(y) || 0;
-                        options.years.set(y, count + data.flows);
+                        options.years.set(y, count + quantityCount);
                     });
                 }
             });
@@ -1526,18 +1861,74 @@
                     if (tradeType === 'domestic' && route.is_international) return;
                 }
                 
-                if (route.by_commodity) {
-                    Object.entries(route.by_commodity).forEach(([comm, data]) => {
+                // Get the correct quantity based on year filter
+                let totalQuantity = route.quantity || 0;
+                if (year !== 'all' && route.by_year && route.by_year[year]) {
+                    totalQuantity = route.by_year[year].quantity || 0;
+                }
+                
+                // Get commodities from the appropriate source based on year and transport filters
+                let commoditiesSource = route.by_commodity;
+                
+                // Priority: year filter takes precedence
+                if (year !== 'all' && route.by_year && route.by_year[year]) {
+                    // Use year-specific commodity data
+                    // Estimate quantity by proportional allocation from by_commodity
+                    commoditiesSource = { };
+                    const yearData = route.by_year[year];
+                    const yearQuantity = yearData.quantity || 0;
+                    
+                    if (yearData.commodities && route.by_commodity) {
+                        // Calculate total flows in this year for proportion
+                        const yearTotalFlows = Object.values(yearData.commodities).reduce((a, b) => a + b, 0);
+                        
+                        Object.entries(yearData.commodities).forEach(([comm, flows]) => {
+                            // Estimate quantity by proportion: (flows in year / total flows in year) * year quantity
+                            const estimatedQuantity = yearTotalFlows > 0 ? (flows / yearTotalFlows) * yearQuantity : 0;
+                            commoditiesSource[comm] = { quantity: estimatedQuantity };
+                        });
+                    }
+                } else if (transport !== 'all' && route.by_transport && route.by_transport[transport]) {
+                    // Use transport-specific commodity data with actual quantity
+                    commoditiesSource = { };
+                    const transportData = route.by_transport[transport];
+                    
+                    if (transportData.commodities && route.by_commodity) {
+                        Object.entries(transportData.commodities).forEach(([comm, flows]) => {
+                            // Use actual quantity from by_commodity (this commodity is transported by this transport)
+                            const actualQuantity = route.by_commodity[comm] ? (route.by_commodity[comm].quantity || 0) : 0;
+                            commoditiesSource[comm] = { quantity: actualQuantity };
+                        });
+                    }
+                }
+                
+                if (commoditiesSource && Object.keys(commoditiesSource).length > 0) {
+                    // Route has commodity breakdown data
+                    let commodityQuantitySum = 0;
+                    Object.entries(commoditiesSource).forEach(([comm, data]) => {
+                        const quantity = data.quantity || 0;
                         const count = options.commodities.get(comm) || 0;
-                        options.commodities.set(comm, count + data.flows);
+                        options.commodities.set(comm, count + quantity);
+                        commodityQuantitySum += quantity;
                     });
+                    
+                    // Add unclassified quantity (difference between total and commodity sum)
+                    const unclassifiedQuantity = totalQuantity - commodityQuantitySum;
+                    if (unclassifiedQuantity > 0) {
+                        const unclassifiedCount = options.commodities.get('Unclassified') || 0;
+                        options.commodities.set('Unclassified', unclassifiedCount + unclassifiedQuantity);
+                    }
+                } else {
+                    // Route has no commodity data - add to "Unclassified" category
+                    const unclassifiedCount = options.commodities.get('Unclassified') || 0;
+                    options.commodities.set('Unclassified', unclassifiedCount + totalQuantity);
                 }
             });
             
             // Calculate available transports (considering other filters, but replacing transport filter)
             routes.forEach(route => {
+                const targetCommodity = commodity !== 'all' && route.by_commodity ? COMMODITY_MAP[commodity] : null;
                 if (commodity !== 'all' && route.by_commodity) {
-                    const targetCommodity = COMMODITY_MAP[commodity];
                     if (!targetCommodity || !route.by_commodity[targetCommodity]) return;
                 }
                 if (year !== 'all' && route.by_year && !route.by_year[year]) return;
@@ -1547,15 +1938,70 @@
                     if (tradeType === 'domestic' && route.is_international) return;
                 }
                 
-                if (route.by_transport) {
-                    Object.entries(route.by_transport).forEach(([trans, data]) => {
+                // Get the correct quantity based on year filter
+                let quantityCount = route.quantity || 0;
+                if (year !== 'all' && route.by_year && route.by_year[year]) {
+                    quantityCount = route.by_year[year].quantity || 0;
+                }
+                
+                // Get transports from the appropriate source based on year and commodity filters
+                let transportsSource = route.by_transport;
+                
+                // Priority: year filter takes precedence
+                if (year !== 'all' && route.by_year && route.by_year[year]) {
+                    // Use year-specific transport data
+                    transportsSource = { };
+                    const yearData = route.by_year[year];
+                    if (yearData.transport_modes) {
+                        Object.entries(yearData.transport_modes).forEach(([trans, flows]) => {
+                            // year transport_modes only has flows, approximate quantity from route.by_transport
+                            const transportQuantity = route.by_transport && route.by_transport[trans] ? 
+                                route.by_transport[trans].quantity || 0 : flows;
+                            transportsSource[trans] = { 
+                                flows: flows,
+                                quantity: transportQuantity
+                            };
+                        });
+                    }
+                } else if (targetCommodity && route.by_commodity && route.by_commodity[targetCommodity]) {
+                    // Use commodity-specific transport data
+                    transportsSource = { };
+                    const commodityData = route.by_commodity[targetCommodity];
+                    if (commodityData.transport_modes) {
+                        Object.entries(commodityData.transport_modes).forEach(([trans, transData]) => {
+                            // transport_modes stores full transport object {flow, quantity}
+                            if (typeof transData === 'object') {
+                                transportsSource[trans] = {
+                                    flows: transData.flow || 0,
+                                    quantity: transData.quantity || 0
+                                };
+                            } else {
+                                // Fallback: if it's just a number, treat as flows
+                                transportsSource[trans] = {
+                                    flows: transData,
+                                    quantity: transData
+                                };
+                            }
+                        });
+                    }
+                }
+                
+                if (transportsSource && Object.keys(transportsSource).length > 0) {
+                    // Route has transport breakdown data
+                    Object.entries(transportsSource).forEach(([trans, data]) => {
                         const count = options.transports.get(trans) || 0;
-                        options.transports.set(trans, count + data.flows);
+                        // Use quantity for transport bars (to match other statistics)
+                        const quantityToAdd = data.quantity || data.flows || 0;
+                        options.transports.set(trans, count + quantityToAdd);
                     });
+                } else {
+                    // Route has no transport data - add to "Unknown" category
+                    const unknownCount = options.transports.get('Unknown') || 0;
+                    options.transports.set('Unknown', unknownCount + quantityCount);
                 }
             });
             
-            // Calculate rural-urban and trade types
+            // Calculate rural-urban and trade types (considering ALL filters) - use quantity
             routes.forEach(route => {
                 if (commodity !== 'all' && route.by_commodity) {
                     const targetCommodity = COMMODITY_MAP[commodity];
@@ -1564,15 +2010,28 @@
                 if (transport !== 'all' && route.by_transport && !route.by_transport[transport]) return;
                 if (year !== 'all' && route.by_year && !route.by_year[year]) return;
                 
+                // Get the correct quantity based on year filter
+                let quantityCount = route.quantity || 0;
+                if (year !== 'all' && route.by_year && route.by_year[year]) {
+                    quantityCount = route.by_year[year].quantity || 0;
+                }
+                
                 const flowType = route.flow_type;
                 if (flowType) {
+                    // If ruralUrban filter is active, only show that type
+                    if (ruralUrban !== 'all' && flowType !== ruralUrban) return;
+                    
                     const count = options.ruralUrban.get(flowType) || 0;
-                    options.ruralUrban.set(flowType, count + route.flows);
+                    options.ruralUrban.set(flowType, count + quantityCount);
                 }
                 
                 const trade = route.is_international ? 'international' : 'domestic';
+                
+                // If tradeType filter is active, only show that type
+                if (tradeType !== 'all' && trade !== tradeType) return;
+                
                 const tradeCount = options.tradeTypes.get(trade) || 0;
-                options.tradeTypes.set(trade, tradeCount + route.flows);
+                options.tradeTypes.set(trade, tradeCount + quantityCount);
             });
             
             return options;
@@ -1638,109 +2097,144 @@
             }
         }
 
-        function updateYearFilterOptions(availableYears) {
-            // Get all year stat bars (not buttons, but stat bars)
-            const yearBars = document.querySelectorAll('.stats-chart .stat-bar');
+        /**
+         * Generate a stacked bar chart
+         * @param {string} containerId - ID of the container for the bar chart
+         * @param {string} legendId - ID of the container for the legend
+         * @param {Map} dataMap - Map of values for the bar chart (key -> count)
+         * @param {Map} allDataMap - Map of all available values for the legend (key -> count)
+         * @param {Object} colorMap - Map of colors (key -> color)
+         * @param {Object} labelMap - Map of labels (key -> label), optional
+         * @param {string} selectedKey - Currently selected key
+         * @param {Function} onSelect - Callback when segment is clicked
+         * @param {boolean} sortByKey - If true, sort by key (e.g., years), otherwise by value
+         */
+        function generateStackedBarChart(containerId, legendId, dataMap, allDataMap, colorMap, labelMap, selectedKey, onSelect, sortByKey = false) {
+            const container = document.getElementById(containerId);
             
-            // Filter to get only year-related bars (they have onclick="selectYearStat")
-            const yearStatBars = Array.from(yearBars).filter(bar => 
-                bar.getAttribute('onclick')?.includes('selectYearStat')
-            );
+            if (!container) return;
             
-            yearStatBars.forEach(bar => {
-                if (!bar) return; // Safety check
+            // Calculate total from bar chart data
+            const total = Array.from(dataMap.values()).reduce((a, b) => a + b, 0);
+            if (total === 0) return;
+            
+            // Clear existing content
+            container.innerHTML = '';
+            
+            // Generate bar segments from dataMap
+            const sortedEntries = sortByKey 
+                ? Array.from(dataMap.entries()).sort((a, b) => a[0].localeCompare(b[0]))  // Sort by key (for years)
+                : Array.from(dataMap.entries()).sort((a, b) => b[1] - a[1]);              // Sort by value (for others)
+            
+            sortedEntries.forEach(([key, value]) => {
+                const percentage = (value / total) * 100;
+                const color = colorMap[key] || '#999';
+                const label = labelMap ? labelMap[key] : key;
+                const isSelected = selectedKey === key;
                 
-                const labelEl = bar.querySelector('.stat-bar-label');
-                if (!labelEl) return;
+                // Get value from allDataMap for display
+                const displayValue = allDataMap.get(key) || value;
                 
-                const year = labelEl.textContent.trim();
-                
-                if (year === 'All') {
-                    bar.style.opacity = '1';
-                    bar.style.pointerEvents = 'auto';
-                    // Calculate total for "All"
-                    const total = Array.from(availableYears.values()).reduce((a, b) => a + b, 0);
-                    bar.style.height = '100%';
-                    return;
-                }
-                
-                if (availableYears.has(year)) {
-                    bar.style.opacity = '1';
-                    bar.style.pointerEvents = 'auto';
-                    
-                    // Update height based on actual flows
-                    const total = Array.from(availableYears.values()).reduce((a, b) => a + b, 0);
-                    if (total > 0) {
-                        const percentage = Math.round((availableYears.get(year) / total) * 100);
-                        bar.style.height = `${percentage}%`;
+                // Create bar segment - click toggles selection
+                const segment = document.createElement('div');
+                segment.className = `stacked-bar-segment ${isSelected ? 'selected' : ''}`;
+                segment.style.width = `${percentage}%`;
+                segment.style.backgroundColor = color;
+                segment.onclick = () => {
+                    // If already selected, deselect (return to 'all')
+                    if (isSelected) {
+                        onSelect('all');
+                    } else {
+                        onSelect(key);
                     }
-                } else {
-                    bar.style.opacity = '0.4';
-                    bar.style.pointerEvents = 'none';
-                    bar.style.height = '5%'; // Minimum height for unavailable years
+                };
+                
+                // Add label with percentage if segment is wide enough
+                if (percentage > 8) {
+                    const labelEl = document.createElement('div');
+                    labelEl.className = 'stacked-bar-label';
+                    labelEl.innerHTML = `
+                        <div class="stacked-bar-label-year">${label}</div>
+                        <!-- <div class="stacked-bar-label-count">${formatCount(displayValue)}</div> -->
+                        <div class="stacked-bar-label-count">${percentage.toFixed(1)}%</div>
+                    `;
+                    segment.appendChild(labelEl);
+                } else if (percentage > 4) {
+                    // For medium segments, show label and percentage only
+                    const labelEl = document.createElement('div');
+                    labelEl.className = 'stacked-bar-label';
+                    labelEl.innerHTML = `
+                        <div class="stacked-bar-label-year">${label}</div>
+                        <div class="stacked-bar-label-count">${percentage.toFixed(0)}%</div>
+                    `;
+                    segment.appendChild(labelEl);
+                } else if (percentage > 2) {
+                    // For smaller segments, only show label
+                    const labelEl = document.createElement('div');
+                    labelEl.className = 'stacked-bar-label';
+                    labelEl.innerHTML = `<div class="stacked-bar-label-year">${label}</div>`;
+                    segment.appendChild(labelEl);
                 }
+                
+                container.appendChild(segment);
             });
+        }
+
+        function updateYearFilterOptions(availableYears) {
+            const yearFilter = document.getElementById('yearFilter');
+            const selectedYear = yearFilter ? yearFilter.value : 'all';
+            
+            // Use filtered data for bar, global data for legend
+            // This way: bar shows only current selection, legend shows all options
+            
+            generateStackedBarChart(
+                'yearStackedBar',
+                'yearLegend',
+                availableYears,          // Filtered data for bar
+                globalStats.years,       // All years for legend
+                STACKED_BAR_COLORS,
+                null, // Use keys as labels
+                selectedYear === 'all' ? null : selectedYear,
+                (year) => selectYearStat(null, year),
+                true  // Sort by year (chronologically)
+            );
         }
 
 
         function updateRuralUrbanFilterOptions(availableRuralUrban) {
-            const ruralUrbanBars = document.querySelectorAll('.rural-urban-bar');
-            ruralUrbanBars.forEach(bar => {
-                if (!bar) return; // Safety check
-                
-                const type = bar.getAttribute('data-type');
-                if (type === 'all') {
-                    bar.style.opacity = '1';
-                    bar.style.pointerEvents = 'auto';
-                    bar.style.height = '100%';
-                    return;
-                }
-                
-                if (availableRuralUrban.has(type)) {
-                    bar.style.opacity = '1';
-                    bar.style.pointerEvents = 'auto';
-                    // Update height based on percentage
-                    const total = Array.from(availableRuralUrban.values()).reduce((a, b) => a + b, 0);
-                    if (total > 0) {
-                        const percentage = Math.round((availableRuralUrban.get(type) / total) * 100);
-                        bar.style.height = `${percentage}%`;
-                    }
-                } else {
-                    bar.style.opacity = '0.4';
-                    bar.style.pointerEvents = 'none';
-                    bar.style.height = '5%';
-                }
-            });
+            const ruralUrbanFilter = document.getElementById('ruralUrbanFilter');
+            const selectedType = ruralUrbanFilter ? ruralUrbanFilter.value : 'all';
+            
+            // Use filtered data for bar, global data for legend
+            
+            generateStackedBarChart(
+                'ruralUrbanStackedBar',
+                'ruralUrbanLegend',
+                availableRuralUrban,        // Filtered data for bar
+                globalStats.ruralUrban,     // All types for legend
+                STACKED_BAR_COLORS,
+                FLOW_PATTERN_LABELS,
+                selectedType === 'all' ? null : selectedType,
+                (type) => selectRuralUrbanStat(null, type)
+            );
         }
 
         function updateTradeTypeFilterOptions(availableTradeTypes) {
-            const tradeTypeBars = document.querySelectorAll('.trade-type-bar');
-            tradeTypeBars.forEach(bar => {
-                if (!bar) return; // Safety check
-                
-                const type = bar.getAttribute('data-type');
-                if (type === 'all') {
-                    bar.style.opacity = '1';
-                    bar.style.pointerEvents = 'auto';
-                    bar.style.height = '100%';
-                    return;
-                }
-                
-                if (availableTradeTypes.has(type)) {
-                    bar.style.opacity = '1';
-                    bar.style.pointerEvents = 'auto';
-                    // Update height based on percentage
-                    const total = Array.from(availableTradeTypes.values()).reduce((a, b) => a + b, 0);
-                    if (total > 0) {
-                        const percentage = Math.round((availableTradeTypes.get(type) / total) * 100);
-                        bar.style.height = `${percentage}%`;
-                    }
-                } else {
-                    bar.style.opacity = '0.4';
-                    bar.style.pointerEvents = 'none';
-                    bar.style.height = '5%';
-                }
-            });
+            const tradeTypeFilter = document.getElementById('tradeTypeFilter');
+            const selectedType = tradeTypeFilter ? tradeTypeFilter.value : 'all';
+            
+            // Use filtered data for bar, global data for legend
+            
+            generateStackedBarChart(
+                'tradeTypeStackedBar',
+                'tradeTypeLegend',
+                availableTradeTypes,        // Filtered data for bar
+                globalStats.tradeTypes,     // All types for legend
+                STACKED_BAR_COLORS,
+                TRADE_TYPE_LABELS,
+                selectedType === 'all' ? null : selectedType,
+                (type) => selectTradeTypeStat(null, type)
+            );
         }
 
         function updateRouteFilterBars(routeFilterStats) {
@@ -1827,6 +2321,17 @@
             return count.toString();
         }
 
+        function formatQuantity(num) {
+            if (num >= 1000000000) {
+                return (num / 1000000000).toFixed(1) + 'B';
+            } else if (num >= 1000000) {
+                return (num / 1000000).toFixed(0) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(0) + 'K';
+            }
+            return Math.round(num).toString();
+        }
+
         /**
          * Ensure Color Mode options are always available (not constrained by other filters)
          */
@@ -1865,7 +2370,7 @@
                 // For heatmap: filter routes first, then generate heatmap from filtered data
                 const filters = { year, commodity, transport };
                 
-                let routesToAggregate = allData.map(route => {
+                let routesToAggregate = allRoutesFlat.map(route => {
                     // Apply rural-urban filter (works in all color modes)
                     if (ruralUrban !== 'all' && route.flow_type !== ruralUrban) {
                         return null;
@@ -1929,7 +2434,7 @@
         function updateStats() {
             if (currentDataSource === 'heatmap') {
                 // Update labels for heatmap mode
-                document.getElementById('routesLabel').textContent = 'Source Routes';
+                document.getElementById('routesLabel').textContent = 'Routes';
                 document.getElementById('distanceLabel').textContent = 'Grid Points';
                 
                 // Show stats from filtered routes (before aggregation to grid)
@@ -1938,12 +2443,12 @@
                 // Total routes used to generate heatmap
                 document.getElementById('visibleRoutes').textContent = sourceRoutes.length.toLocaleString();
                 
-                // Total flows from filtered routes
-                const totalFlows = sourceRoutes.reduce((sum, r) => {
-                    const flows = r._displayData ? r._displayData.flows : r.flows;
-                    return sum + (flows || 0);
+                // Total quantity from filtered routes
+                const totalQuantity = sourceRoutes.reduce((sum, r) => {
+                    const quantity = r._displayData ? (r._displayData.quantity || 0) : (r.quantity || 0);
+                    return sum + quantity;
                 }, 0);
-                document.getElementById('totalFlows').textContent = totalFlows.toLocaleString();
+                document.getElementById('totalFlows').textContent = formatQuantity(totalQuantity);
                 
                 // International flows count
                 const intlCount = sourceRoutes.filter(r => r.is_international).length;
@@ -1959,7 +2464,11 @@
             document.getElementById('routesLabel').textContent = 'Routes';
             document.getElementById('distanceLabel').textContent = 'Avg Distance';
 
-            // Use precise flows from _displayData
+            // Use precise quantity from _displayData
+            const totalQuantity = filteredRoutes.reduce((sum, r) => {
+                const quantity = r._displayData ? (r._displayData.quantity || 0) : (r.quantity || 0);
+                return sum + quantity;
+            }, 0);
             const totalFlows = filteredRoutes.reduce((sum, r) => {
                 const flows = r._displayData ? r._displayData.flows : r.flows;
                 return sum + (flows || 0);
@@ -1981,7 +2490,7 @@
             const avgDist = count > 0 ? Math.round(totalDistance / count) : 0;
 
             document.getElementById('visibleRoutes').textContent = filteredRoutes.length.toLocaleString();
-            document.getElementById('totalFlows').textContent = totalFlows.toLocaleString();
+            document.getElementById('totalFlows').textContent = formatQuantity(totalQuantity);
             document.getElementById('intlFlows').textContent = intlCount.toLocaleString();
             document.getElementById('avgDistance').textContent = avgDist + ' km';
         }
@@ -2054,13 +2563,114 @@
                 layers.push(heatmapLayer);
 
             } else {
-                // Arc layer - either direct or via city routes
-                let arcData = filteredRoutes;
+                // Separate routes with OSRM paths from those without
+                const routesWithPaths = filteredRoutes.filter(r => r.path && r.path.length > 0);
+                const routesWithoutPaths = filteredRoutes.filter(r => !r.path || r.path.length === 0);
+                
+                // PathLayer for routes with OSRM paths (real road routing)
+                const pathLayer = new PathLayer({
+                    id: 'path-layer',
+                    data: routesWithPaths,
+                    getPath: d => d.path,
+                    getColor: d => {
+                        // Check if this route should be highlighted
+                        let isHighlighted = true;
+                        
+                        // Priority 1: Point selection
+                        if (selectedPoint) {
+                            if (selectedPoint.type === 'source') {
+                                const srcCoords = d.source.coordinates;
+                                isHighlighted = (
+                                    srcCoords[0].toFixed(3) === selectedPoint.position[0].toFixed(3) &&
+                                    srcCoords[1].toFixed(3) === selectedPoint.position[1].toFixed(3)
+                                );
+                            } else if (selectedPoint.type === 'destination') {
+                                const destCoords = d.destination.coordinates;
+                                isHighlighted = (
+                                    destCoords[0].toFixed(3) === selectedPoint.position[0].toFixed(3) &&
+                                    destCoords[1].toFixed(3) === selectedPoint.position[1].toFixed(3)
+                                );
+                            }
+                        }
+                        // Priority 2: Route selection
+                        else if (selectedRoute) {
+                            isHighlighted = (d.source.name === selectedRoute.source.name && 
+                                           d.destination.name === selectedRoute.destination.name);
+                        }
+                        // Priority 3: Hover
+                        else if (hoveredRoute) {
+                            isHighlighted = (d.source.name === hoveredRoute.source.name && 
+                                           d.destination.name === hoveredRoute.destination.name);
+                        }
+                        
+                        if (colorMode === 'rural_urban') {
+                            const color = getLocationColor(d.source.is_urban);
+                            const alpha = isHighlighted ? 200 : 30;
+                            return [color[0], color[1], color[2], alpha];
+                        } else if (colorMode === 'source_destination') {
+                            const color = [100, 180, 255]; // Blue for paths
+                            const alpha = isHighlighted ? 200 : 40;
+                            return [color[0], color[1], color[2], alpha];
+                        } else {
+                            const color = getFlowTypeColor(d);
+                            const alpha = isHighlighted ? 255 : 40;
+                            return [color[0], color[1], color[2], alpha];
+                        }
+                    },
+                    getWidth: d => {
+                        // Use quantity instead of flows for width
+                        const quantity = d.quantity || d.flows || 1;
+                        const baseWidth = Math.sqrt(quantity) * 0.15;  // Reduced from 0.5 to 0.15
+                        let isHighlighted = false;
+                        
+                        if (selectedPoint) {
+                            if (selectedPoint.type === 'source') {
+                                const srcCoords = d.source.coordinates;
+                                isHighlighted = (
+                                    srcCoords[0].toFixed(3) === selectedPoint.position[0].toFixed(3) &&
+                                    srcCoords[1].toFixed(3) === selectedPoint.position[1].toFixed(3)
+                                );
+                            } else if (selectedPoint.type === 'destination') {
+                                const destCoords = d.destination.coordinates;
+                                isHighlighted = (
+                                    destCoords[0].toFixed(3) === selectedPoint.position[0].toFixed(3) &&
+                                    destCoords[1].toFixed(3) === selectedPoint.position[1].toFixed(3)
+                                );
+                            }
+                        } else if (selectedRoute) {
+                            isHighlighted = (d.source.name === selectedRoute.source.name && 
+                                           d.destination.name === selectedRoute.destination.name);
+                        } else if (hoveredRoute) {
+                            isHighlighted = (d.source.name === hoveredRoute.source.name && 
+                                           d.destination.name === hoveredRoute.destination.name);
+                        }
+                        
+                        return isHighlighted ? baseWidth * 3 : baseWidth;
+                    },
+                    widthMinPixels: 0.5,
+                    widthMaxPixels: 10,
+                    pickable: true,
+                    onHover: info => {
+                        if (info.object && !selectedRoute && !selectedPoint) {
+                            hoveredRoute = info.object;
+                        } else if (!info.object) {
+                            hoveredRoute = null;
+                        }
+                    },
+                    updateTriggers: {
+                        getColor: [hoveredRoute, selectedRoute, selectedPoint, colorMode],
+                        getWidth: [hoveredRoute, selectedRoute, selectedPoint]
+                    }
+                });
+                layers.push(pathLayer);
+                
+                // Arc layer for routes without OSRM paths (fallback to straight lines)
+                let arcData = routesWithoutPaths;
                 
                 // If showViaCity is enabled, create two-segment routes
                 if (showViaCity) {
                     arcData = [];
-                    filteredRoutes.forEach(route => {
+                    routesWithoutPaths.forEach(route => {
                         if (route.via_city && route.via_city.coordinates) {
                             // First segment: source → via_city
                             arcData.push({
@@ -2177,9 +2787,9 @@
                         }
                     },
                     getWidth: d => {
-                        // Use precise flows from _displayData if available
-                        const flows = d._displayData ? d._displayData.flows : (d.flows || d.total_flows || 1);
-                        return Math.log(flows + 1) * arcWidth;
+                        // Use precise quantity from _displayData if available
+                        const quantity = d._displayData ? (d._displayData.quantity || d._displayData.flows) : (d.quantity || d.flows || 1);
+                        return Math.log(quantity + 1) * arcWidth * 0.6;  // Additional 0.6 multiplier to make lines thinner
                     },
                     pickable: true,
                     autoHighlight: false, // Disable auto-highlight, we handle it manually
@@ -2299,7 +2909,8 @@
                             } else if (colorMode === 'source_destination') {
                                 color = getPointTypeColor(true); // true = source
                             } else {
-                                color = getLocationColor(d.is_urban);
+                                // International mode: use source/dest color scheme
+                                color = getPointTypeColor(true); // true = source
                             }
                             const alpha = isHighlighted ? 200 : 5;
                             return [color[0], color[1], color[2], alpha];
@@ -2376,7 +2987,8 @@
                             } else if (colorMode === 'source_destination') {
                                 color = getPointTypeColor(false); // false = destination
                             } else {
-                                color = getLocationColor(d.is_urban);
+                                // International mode: use source/dest color scheme
+                                color = getPointTypeColor(false); // false = destination
                             }
                             const alpha = isHighlighted ? 200 : 5;
                             return [color[0], color[1], color[2], alpha];
@@ -2573,6 +3185,7 @@
                     
                     html = `
                         <div class="tooltip-title">${titlePrefix}</div>
+                        <div class="tooltip-item">📦 Quantity: ${(displayData.quantity || 0).toLocaleString()}</div>
                         <div class="tooltip-item">🔄 Flows: ${(displayData.flows || 0).toLocaleString()}</div>
                     `;
                     
@@ -2672,9 +3285,12 @@
 
         // 统计图表选择函数
         function selectRuralUrbanStat(element, type) {
+            // Handle old stat bar interface if element is provided
+            if (element && element.parentElement) {
             const bars = element.parentElement.querySelectorAll('.stat-bar');
             bars.forEach(bar => bar.classList.remove('active'));
             element.classList.add('active');
+            }
             
             // Sync with hidden select
             const select = document.getElementById('ruralUrbanFilter');
@@ -2684,9 +3300,12 @@
         }
 
         function selectTradeTypeStat(element, type) {
+            // Handle old stat bar interface if element is provided
+            if (element && element.parentElement) {
             const bars = element.parentElement.querySelectorAll('.stat-bar');
             bars.forEach(bar => bar.classList.remove('active'));
             element.classList.add('active');
+            }
             
             // Sync with hidden select
             const select = document.getElementById('tradeTypeFilter');
@@ -2696,9 +3315,12 @@
         }
 
         function selectYearStat(element, year) {
+            // Handle old stat bar interface if element is provided
+            if (element && element.parentElement) {
             const bars = element.parentElement.querySelectorAll('.stat-bar');
             bars.forEach(bar => bar.classList.remove('active'));
             element.classList.add('active');
+            }
             
             // Sync with hidden select
             const select = document.getElementById('yearFilter');

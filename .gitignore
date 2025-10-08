@@ -1,5 +1,11 @@
-# Ignore Info_temp folder
-Info_temp/
+# Ignore Info_temp folders
+Info_temp_CH/
+
+# Ignore version backup folders
+version_*/
+
+# Ignore try/test folders
+try_*/
 
 # Ignore common files
 .DS_Store
