@@ -17,6 +17,8 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
             overflow: hidden;
+            margin: 0;
+            padding: 0;
         }
 
         #map {
@@ -31,12 +33,14 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            background: white;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
             padding: 20px 25px;
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
             z-index: 10;
             max-width: 350px;
+            border: 1px solid rgba(0,0,0,0.06);
         }
 
         .header h1 {
@@ -53,30 +57,121 @@
         }
 
         .control-panel {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: white;
-            padding: 16px;
-            border-radius: 8px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-            max-width: 320px;
-            max-height: calc(100vh - 40px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            padding: 16px 12px;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+            width: 260px;
+            max-width: 90vw;
+            overflow-x: visible;
             overflow-y: auto;
             z-index: 10;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-right: 1px solid rgba(0,0,0,0.06);
+        }
+        
+        .control-panel.collapsed {
+            transform: translateX(-260px);
+        }
+        
+        .control-panel-toggle {
+            position: fixed;
+            top: 50%;
+            left: 260px;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0,0,0,0.06);
+            border-left: none;
+            border-radius: 0 6px 6px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: #4a5568;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 2px 0 8px rgba(0,0,0,0.06);
+            z-index: 11;
+        }
+        
+        .control-panel-toggle:hover {
+            background: white;
+            color: #007bff;
+            width: 36px;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.12);
+        }
+        
+        .control-panel-toggle::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            margin-left: 8px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        
+        .control-panel-toggle:hover::after {
+            opacity: 1;
+        }
+        
+        .control-panel-toggle.collapsed {
+            left: 0;
+        }
+        
+        /* Ensure panel content doesn't overflow horizontally */
+        .control-panel * {
+            max-width: 100%;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .control-panel {
+                width: 240px;
+            }
+            
+            .control-panel-toggle {
+                left: 240px;
+            }
+            
+            .control-panel.collapsed {
+                transform: translateX(-240px);
+            }
         }
 
         .control-panel h3 {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             margin-bottom: 16px;
+            margin-top: 0;
             color: #2d3748;
             font-weight: 600;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .control-group {
-            margin-bottom: 16px;
+            margin-bottom: 14px;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .control-group:first-of-type {
+            margin-top: 0;
         }
 
         .control-group label {
@@ -91,11 +186,13 @@
 
         select, input[type="range"] {
             width: 100%;
+            max-width: 100%;
             padding: 8px 10px;
             border: 2px solid #e2e8f0;
             border-radius: 8px;
             font-size: 0.875rem;
             transition: border-color 0.2s;
+            box-sizing: border-box;
         }
 
         select:focus {
@@ -124,6 +221,8 @@
             gap: 3px;
             max-height: 200px;
             overflow-y: auto;
+            overflow-x: hidden;
+            width: 100%;
         }
 
         .filter-bar-item {
@@ -226,6 +325,8 @@
             margin-top: 6px;
             max-height: 200px;
             overflow-y: auto;
+            overflow-x: hidden;
+            width: 100%;
         }
 
         .commodity-card {
@@ -266,41 +367,19 @@
             line-height: 1;
         }
 
-        /* 模式切换 */
-        .view-mode-toggle {
-            display: flex;
-            gap: 4px;
-            margin-bottom: 12px;
-        }
-
-        .mode-btn {
-            flex: 1;
-            padding: 6px;
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 3px;
-            font-size: 0.65rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .mode-btn.active {
-            background: #495057;
-            color: white;
-            border-color: #343a40;
-        }
-
         /* 统计图表样式 */
         .stats-chart {
             display: flex;
             align-items: end;
             gap: 2px;
             height: 40px;
-            margin: 6px 0;
+            margin: 6px 0 24px 0;
             padding: 4px;
             background: #f8f9fa;
             border-radius: 3px;
+            width: 100%;
+            overflow: visible;
+            position: relative;
         }
 
         .stat-bar {
@@ -339,6 +418,8 @@
         /* 横向堆叠条形图 */
         .stacked-bar-container {
             margin: 6px 0;
+            width: 100%;
+            overflow: hidden;
         }
 
         .stacked-bar-chart {
@@ -453,50 +534,57 @@
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 8px;
+            margin-top: 12px;
+            width: 100%;
         }
 
         .stat-card {
-            background: #f7fafc;
-            padding: 12px;
-            border-radius: 8px;
+            background: #f8f9fa;
+            padding: 10px 8px;
+            border-radius: 6px;
             text-align: center;
+            border: 1px solid #e9ecef;
         }
 
         .stat-value {
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             font-weight: 700;
             color: #2d3748;
             line-height: 1;
         }
 
         .stat-label {
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             color: #718096;
             margin-top: 4px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            font-weight: 500;
         }
 
         .legend {
-            margin-top: 18px;
-            padding-top: 18px;
-            border-top: 2px solid #edf2f7;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 2px solid #e9ecef;
+            width: 100%;
+            overflow: hidden;
         }
 
         .legend-title {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             font-weight: 600;
             color: #4a5568;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .legend-item {
             display: flex;
             align-items: center;
-            margin-bottom: 8px;
-            font-size: 0.85rem;
+            margin-bottom: 6px;
+            font-size: 0.75rem;
         }
 
         .legend-line {
@@ -525,23 +613,84 @@
         .checkbox-group {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 8px;
-            margin-top: 10px;
-            padding: 10px;
-            background: #f7fafc;
-            border-radius: 8px;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
+            margin-top: 8px;
+            padding: 6px 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
         }
 
         .checkbox-group label {
             margin: 0;
             font-weight: 500;
             cursor: pointer;
+            font-size: 0.7rem;
+            color: #495057;
+            flex: 1;
+        }
+
+        /* Custom toggle switch */
+        .toggle-switch {
+            position: relative;
+            width: 36px;
+            height: 18px;
+            flex-shrink: 0;
+            display: inline-block;
+        }
+
+        .toggle-switch input[type="checkbox"] {
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            margin: 0;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e0;
+            transition: 0.2s;
+            border-radius: 18px;
+            pointer-events: none;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.2s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #007bff;
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(18px);
+        }
+
+        .toggle-switch:hover .toggle-slider {
+            background-color: #a0aec0;
+        }
+
+        .toggle-switch input:checked:hover + .toggle-slider {
+            background-color: #0056b3;
         }
 
         .loading {
@@ -623,20 +772,42 @@
             font-weight: 600;
         }
 
-        ::-webkit-scrollbar {
-            width: 6px;
+        .control-panel::-webkit-scrollbar {
+            width: 4px;
         }
 
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
+        .control-panel::-webkit-scrollbar-track {
+            background: transparent;
         }
 
-        ::-webkit-scrollbar-thumb {
+        .control-panel::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.1);
+            border-radius: 2px;
+        }
+
+        .control-panel::-webkit-scrollbar-thumb:hover {
+            background: rgba(0,0,0,0.2);
+        }
+        
+        /* For other scrollable areas */
+        .filter-bars::-webkit-scrollbar,
+        .commodity-grid::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .filter-bars::-webkit-scrollbar-track,
+        .commodity-grid::-webkit-scrollbar-track {
+            background: #f8f9fa;
+        }
+
+        .filter-bars::-webkit-scrollbar-thumb,
+        .commodity-grid::-webkit-scrollbar-thumb {
             background: #cbd5e0;
-            border-radius: 3px;
+            border-radius: 2px;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
+        .filter-bars::-webkit-scrollbar-thumb:hover,
+        .commodity-grid::-webkit-scrollbar-thumb:hover {
             background: #a0aec0;
         }
 
@@ -659,17 +830,12 @@
         </div>
     </div>
 
-    <div class="control-panel" id="control-panel" style="display: none;">
-        <h3>Interactive Filters</h3>
-        
-        <!-- View Mode Toggle -->
-        <div class="view-mode-toggle">
-            <div class="mode-btn active" onclick="toggleFilterMode('interactive')">Chart</div>
-            <div class="mode-btn" onclick="toggleFilterMode('traditional')">List</div>
+    <div class="control-panel-toggle" id="panelToggle" onclick="toggleControlPanel()" data-tooltip="Hide filters (F)" style="display: none;">
+        <span id="toggleIcon">◀</span>
         </div>
 
-        <!-- Interactive Mode (default) -->
-        <div id="interactiveMode">
+    <div class="control-panel" id="control-panel" style="display: none;">
+        <h3>Filters</h3>
             <!-- Color Mode -->
             <div class="control-group">
                 <label>Color Mode</label>
@@ -738,6 +904,14 @@
                 </div>
             </div>
 
+            <!-- Via City (Transit) -->
+            <div class="control-group">
+                <label id="viaCityLabel">Transit Cities</label>
+                <div class="filter-bars" id="viaCityBars" style="max-height: 250px;">
+                    <!-- Dynamically generated from data -->
+                </div>
+            </div>
+
             <!-- Route Filter -->
             <div class="control-group">
                 <label>Route Filter</label>
@@ -753,76 +927,7 @@
                     </div>
                     <div class="stat-bar" onclick="selectRouteFilterStat(this, 'heatmap')">
                         <div class="stat-bar-label">Heatmap</div>
-                    </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Traditional Mode (hidden by default) -->
-        <div id="traditionalMode" style="display: none;">
-        <div class="control-group">
-            <label>Route Filter</label>
-            <select id="routeFilter">
-                <option value="all" selected>All Routes (complete data)</option>
-                <option value="major">Major Routes (flows ≥ 10)</option>
-                <option value="top100">Top 100 (busiest)</option>
-                <option value="heatmap">Heatmap (aggregated)</option>
-            </select>
-        </div>
-
-        <div class="control-group">
-            <label>🎨 Color Mode</label>
-            <select id="colorModeSelect">
-                <option value="source_destination" selected>Source-Destination</option>
-                <option value="rural_urban">Rural-Urban Pattern</option>
-                <option value="international">International-Domestic</option>
-            </select>
-        </div>
-
-        <div class="control-group">
-            <label>Year</label>
-            <select id="yearFilter">
-                    <option value="all" selected>All Years</option>
-                <option value="2013">2013</option>
-                <option value="2014">2014</option>
-                <option value="2015">2015</option>
-                <option value="2016">2016</option>
-                <option value="2017">2017</option>
-            </select>
-        </div>
-
-            <div class="control-group">
-                <label>Commodity</label>
-                <select id="commodityFilter">
-                    <!-- Dynamically generated from data -->
-            </select>
-        </div>
-
-        <div class="control-group">
-                <label>Transportation Mode</label>
-                <select id="transportFilter">
-                    <!-- Dynamically generated from data -->
-            </select>
-        </div>
-
-        <div class="control-group">
-                <label>🏘️ Rural-Urban Pattern</label>
-                <select id="ruralUrbanFilter">
-                    <option value="all" selected>All Flow Types</option>
-                    <option value="rural_to_urban">🏘️→🏙️ Rural → Urban</option>
-                    <option value="urban_to_rural">🏙️→🏘️ Urban → Rural</option>
-                    <option value="rural_to_rural">🏘️→🏘️ Rural → Rural</option>
-                    <option value="urban_to_urban">🏙️→🏙️ Urban → Urban</option>
-            </select>
-        </div>
-
-        <div class="control-group">
-                <label>Trade Type</label>
-                <select id="tradeTypeFilter">
-                    <option value="all" selected>All Trades</option>
-                    <option value="international">🌐 International</option>
-                    <option value="domestic">🏠 Domestic</option>
-            </select>
             </div>
         </div>
 
@@ -835,13 +940,27 @@
         </div>
 
         <div class="checkbox-group">
+                <label for="showArcs">📈 Flow arcs</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="showArcs" checked>
+                    <span class="toggle-slider"></span>
+                </div>
+            </div>
+
+            <div class="checkbox-group">
+                <label for="showPoints">📍 Location points</label>
+                <div class="toggle-switch">
             <input type="checkbox" id="showPoints" checked>
-            <label for="showPoints">Show location points</label>
+                    <span class="toggle-slider"></span>
+                </div>
         </div>
 
         <div class="checkbox-group">
+                <label for="showViaCity">⤴ Transit cities</label>
+                <div class="toggle-switch">
             <input type="checkbox" id="showViaCity">
-            <label for="showViaCity">Show transit cities (via routes)</label>
+                    <span class="toggle-slider"></span>
+                </div>
         </div>
 
         <div class="stats-grid">
@@ -1119,9 +1238,21 @@
                 }
             });
             
+            // Calculate via city counts - use quantity for statistics
+            const viaCityCounts = new Map();
+            allRoutesFlat.forEach(route => {
+                const viaCityName = route.via_city && route.via_city.name ? route.via_city.name : 'Direct';
+                const count = viaCityCounts.get(viaCityName) || 0;
+                viaCityCounts.set(viaCityName, count + (route.quantity || 0));
+            });
+            
             // Update label with count
             document.getElementById('commodityLabel').textContent = `Commodities (${commodityCounts.size} types)`;
             document.getElementById('transportLabel').textContent = `Transport (${transportCounts.size} modes)`;
+            const viaCityLabel = document.getElementById('viaCityLabel');
+            if (viaCityLabel) {
+                viaCityLabel.textContent = `Transit Cities (${viaCityCounts.size} types)`;
+            }
             
             // Generate commodity cards
             generateCommodityCards(commodityCounts);
@@ -1129,8 +1260,8 @@
             // Generate transport bars
             generateTransportBars(transportCounts);
             
-            // Also update traditional mode selects
-            generateTraditionalModeOptions(commodityCounts, transportCounts);
+            // Generate via city bars
+            generateViaCityBars(viaCityCounts);
         }
 
         function generateCommodityCards(commodityCounts) {
@@ -1226,52 +1357,45 @@
             });
         }
 
-        function generateTraditionalModeOptions(commodityCounts, transportCounts) {
-            // Update commodity select
-            const commoditySelect = document.getElementById('commodityFilter');
-            if (commoditySelect) {
-                // Keep only the "All" option
-                commoditySelect.innerHTML = '<option value="all" selected>All Commodities</option>';
-                
-                // Sort and add commodities
-                const sortedCommodities = Array.from(commodityCounts.entries())
-                    .sort((a, b) => b[1] - a[1]);
-                
-                sortedCommodities.forEach(([commodity, count]) => {
-                    // Find the key
-                    let commodityKey = null;
-                    for (const [key, value] of Object.entries(COMMODITY_MAP)) {
-                        if (value === commodity) {
-                            commodityKey = key;
-                            break;
-                        }
-                    }
-                    if (!commodityKey) {
-                        commodityKey = commodity.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-                    }
-                    
-                    const option = document.createElement('option');
-                    option.value = commodityKey;
-                    option.textContent = commodity;
-                    commoditySelect.appendChild(option);
-                });
-            }
+        function generateViaCityBars(viaCityCounts) {
+            const container = document.getElementById('viaCityBars');
+            if (!container) return; // Skip if container doesn't exist yet
             
-            // Update transport select
-            const transportSelect = document.getElementById('transportFilter');
-            if (transportSelect) {
-                transportSelect.innerHTML = '<option value="all" selected>All Modes</option>';
-                
-                const sortedTransports = Array.from(transportCounts.entries())
+            container.innerHTML = ''; // Clear existing
+            
+            // Calculate total for percentages
+            const total = Array.from(viaCityCounts.values()).reduce((a, b) => a + b, 0);
+            if (total === 0) return;
+            
+            // Add "All" option first
+            const allBar = document.createElement('div');
+            allBar.className = 'filter-bar-item active';
+            allBar.onclick = function() { selectViaCity(this, 'all'); };
+            allBar.innerHTML = `
+                <span class="filter-bar-label">All Routes</span>
+                <div class="bar-container"><div class="bar-fill" style="width: 100%"></div></div>
+                <span class="bar-value">100%</span>
+            `;
+            container.appendChild(allBar);
+            
+            // Sort via cities by count (descending)
+            const sortedCities = Array.from(viaCityCounts.entries())
                     .sort((a, b) => b[1] - a[1]);
                 
-                sortedTransports.forEach(([transport, count]) => {
-                    const option = document.createElement('option');
-                    option.value = transport;
-                    option.textContent = transport;
-                    transportSelect.appendChild(option);
-                });
-            }
+            // Generate bar for each via city
+            sortedCities.forEach(([cityName, count]) => {
+                const percentage = Math.round((count / total) * 100);
+                const bar = document.createElement('div');
+                bar.className = 'filter-bar-item';
+                bar.onclick = function() { selectViaCity(this, cityName); };
+                const icon = cityName === 'Direct' ? '→' : '⤴';
+                bar.innerHTML = `
+                    <span class="filter-bar-label">${icon} ${cityName}</span>
+                    <div class="bar-container"><div class="bar-fill" style="width: ${percentage}%"></div></div>
+                    <span class="bar-value">${percentage}%</span>
+                `;
+                container.appendChild(bar);
+            });
         }
 
         async function init() {
@@ -1284,6 +1408,7 @@
 
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('control-panel').style.display = 'block';
+                document.getElementById('panelToggle').style.display = 'flex';
 
                 initDeckGL();
                 updateStats();  // Update statistics on initial load
@@ -1359,6 +1484,8 @@
                         };
                         
                         // Aggregate transport modes
+                        const totalCommodityQuantity = commData.quantity || 0;
+                        
                         Object.entries(commData.transport || {}).forEach(([transName, transData]) => {
                             if (!route.transport_modes[transName]) {
                                 route.transport_modes[transName] = 0;
@@ -1374,8 +1501,16 @@
                                 };
                             }
                             route.by_transport[transName].flows += transData.flow || 0;
-                            route.by_transport[transName].quantity += transData.quantity || 0;
-                            route.by_transport[transName].commodities[commName] = transData.quantity || 0;  // Use quantity not flow
+                            
+                            // FIX: Distribute quantity by flow proportion to avoid double-counting
+                            // If a commodity uses multiple transports, split quantity by flow ratio
+                            const transportQuantity = commodityFlows > 0 
+                                ? (transData.flow / commodityFlows) * totalCommodityQuantity 
+                                : (transData.quantity || 0);
+                            
+                            route.by_transport[transName].quantity += transportQuantity;
+                            route.by_transport[transName].commodities[commName] = (route.by_transport[transName].commodities[commName] || 0) + transportQuantity;
+                            
                             if (!route.by_transport[transName].years.includes(parseInt(year))) {
                                 route.by_transport[transName].years.push(parseInt(year));
                             }
@@ -1465,6 +1600,12 @@
                                 existing.by_transport[trans].flows += data.flows;
                                 existing.by_transport[trans].quantity += data.quantity;
                                 existing.by_transport[trans].years = [...new Set([...existing.by_transport[trans].years, ...data.years])].sort();
+                                
+                                // Merge commodities within this transport
+                                Object.entries(data.commodities || {}).forEach(([comm, qty]) => {
+                                    existing.by_transport[trans].commodities[comm] = 
+                                        (existing.by_transport[trans].commodities[comm] || 0) + qty;
+                                });
                             }
                         });
                     } else {
@@ -1633,6 +1774,9 @@
          * Uses by_year, by_transport, by_commodity for accurate filtering
          */
         function getRouteDisplayData(route, filters) {
+            // UPDATED for multi-select: filters now contain arrays
+            const { year, commodity, transport } = filters;
+            
             // Start with full route data
             let displayData = {
                 flows: route.flows,
@@ -1643,87 +1787,109 @@
                 main_transport: route.main_transport
             };
 
-            // Apply year filter using by_year breakdown
-            if (filters.year && filters.year !== 'all' && route.by_year) {
-                const yearData = route.by_year[filters.year];
-                if (!yearData) return null; // Route has no data for this year
+            // Apply year filter using by_year breakdown (supports multiple years)
+            if (year && !year.includes('all') && year.length > 0 && route.by_year) {
+                displayData.flows = 0;
+                displayData.quantity = 0;
+                displayData.commodities = {};
+                displayData.transport_modes = {};
+                displayData.years = [];
                 
-                displayData.flows = yearData.flows;
-                displayData.quantity = yearData.quantity || 0;
-                displayData.commodities = yearData.commodities;
-                displayData.transport_modes = yearData.transport_modes;
+                year.forEach(y => {
+                    const yearData = route.by_year[y];
+                    if (yearData) {
+                        displayData.flows += yearData.flows || 0;
+                        displayData.quantity += yearData.quantity || 0;
+                        displayData.years.push(y);
+                        
+                        // Merge commodities
+                        if (yearData.commodities) {
+                            Object.entries(yearData.commodities).forEach(([comm, qty]) => {
+                                displayData.commodities[comm] = (displayData.commodities[comm] || 0) + qty;
+                            });
+                        }
+                        
+                        // Merge transport modes
+                        if (yearData.transport_modes) {
+                            Object.entries(yearData.transport_modes).forEach(([trans, flows]) => {
+                                displayData.transport_modes[trans] = (displayData.transport_modes[trans] || 0) + flows;
+                            });
+                        }
+                    }
+                });
                 
-                // Update main transport for this year
-                const modes = Object.entries(yearData.transport_modes);
+                if (displayData.years.length === 0) return null; // No matching years
+                
+                // Update main transport
+                const modes = Object.entries(displayData.transport_modes);
                 if (modes.length > 0) {
                     displayData.main_transport = modes.reduce((a, b) => a[1] > b[1] ? a : b)[0];
                 }
             }
 
-            // Apply transport filter using by_transport breakdown
-            if (filters.transport && filters.transport !== 'all' && route.by_transport) {
-                const transportData = route.by_transport[filters.transport];
-                if (!transportData) return null; // Route doesn't use this transport
+            // Apply transport filter (supports multiple transports)
+            if (transport && !transport.includes('all') && transport.length > 0 && route.by_transport) {
+                let hasMatchingTransport = false;
+                displayData.flows = 0;
+                displayData.quantity = 0;
+                displayData.commodities = {};
+                const allTransportYears = [];
                 
-                // If year filter was already applied, do intersection
-                if (filters.year && filters.year !== 'all') {
-                    const yearData = route.by_year[filters.year];
-                    if (yearData && yearData.transport_modes[filters.transport]) {
-                        // yearData.transport_modes stores flows
-                        displayData.flows = yearData.transport_modes[filters.transport];
-                        // For quantity, use transportData's quantity (approximate)
-                        displayData.quantity = transportData.quantity || 0;
-                        displayData.commodities = transportData.commodities; // Approximate
-                    } else {
-                        return null; // This transport not used in this year
+                transport.forEach(trans => {
+                    const transportData = route.by_transport[trans];
+                    if (transportData) {
+                        hasMatchingTransport = true;
+                        displayData.flows += transportData.flows || 0;
+                        displayData.quantity += transportData.quantity || 0;
+                        
+                        // Merge commodities
+                        if (transportData.commodities) {
+                            Object.entries(transportData.commodities).forEach(([comm, qty]) => {
+                                displayData.commodities[comm] = (displayData.commodities[comm] || 0) + qty;
+                            });
+                        }
+                        
+                        // Collect years
+                        if (transportData.years) {
+                            allTransportYears.push(...transportData.years);
+                        }
                     }
-                } else {
-                    displayData.flows = transportData.flows;
-                    displayData.quantity = transportData.quantity || 0;
-                    displayData.commodities = transportData.commodities;
-                    displayData.years = transportData.years;
-                }
-                displayData.main_transport = filters.transport;
+                });
+                
+                if (!hasMatchingTransport) return null; // Route doesn't use any selected transport
+                
+                displayData.years = [...new Set(allTransportYears)];
+                displayData.main_transport = transport[0]; // Use first selected transport
             }
 
-            // Apply commodity filter using by_commodity breakdown
-            if (filters.commodity && filters.commodity !== 'all' && route.by_commodity) {
-                const targetCommodity = COMMODITY_MAP[filters.commodity];
-                const commodityData = route.by_commodity[targetCommodity];
+            // Apply commodity filter (supports multiple commodities)
+            if (commodity && !commodity.includes('all') && commodity.length > 0 && route.by_commodity) {
+                let hasMatchingCommodity = false;
+                displayData.flows = 0;
+                displayData.quantity = 0;
+                displayData.commodities = {};
                 
-                if (!commodityData) return null; // Route doesn't transport this commodity
-                
-                // If year filter was already applied, do intersection
-                if (filters.year && filters.year !== 'all' && route.by_year && route.by_year[filters.year]) {
-                    const yearData = route.by_year[filters.year];
-                    if (yearData.commodities && yearData.commodities[targetCommodity]) {
-                        // yearData.commodities stores quantity
-                        const commodityQuantity = yearData.commodities[targetCommodity];
-                        displayData.quantity = commodityQuantity;
-                        displayData.commodities = { [targetCommodity]: commodityQuantity };
-                        displayData.transport_modes = yearData.transport_modes; // Approximate
-                        
-                        // Get flows for this commodity in this year
-                        displayData.flows = yearData.commodities_flows ? (yearData.commodities_flows[targetCommodity] || 0) : 0;
-                    } else {
-                        return null; // This commodity not transported in this year
+                commodity.forEach(comm => {
+                    const targetCommodity = COMMODITY_MAP[comm];
+                    const commodityData = route.by_commodity[targetCommodity];
+                    
+                    if (commodityData) {
+                        hasMatchingCommodity = true;
+                        displayData.flows += commodityData.flows || 0;
+                        displayData.quantity += commodityData.quantity || 0;
+                        displayData.commodities[targetCommodity] = commodityData.quantity || 0;
                     }
-                } else {
-                    // For commodity filter alone, we show only this commodity
-                displayData.commodities = { [targetCommodity]: commodityData.quantity };
-                displayData.flows = commodityData.flows;  // Real flow count
-                displayData.quantity = commodityData.quantity;  // Quantity
-                displayData.transport_modes = commodityData.transport_modes;
-                displayData.years = commodityData.years;
-                }
+                });
+                
+                if (!hasMatchingCommodity) return null; // Route doesn't transport any selected commodity
             }
 
             return displayData;
         }
 
         /**
-         * Update filter options based on current selections (filter constraints)
-         * This ensures filters work together - selecting one filter constrains others
+         * Update filter options based on current selections (SIMPLIFIED LOGIC)
+         * Each filter shows data available if you select that option (independent of its own current value)
          */
         function updateFilterOptions(currentFilters) {
             // Safety check - ensure DOM elements exist
@@ -1732,10 +1898,7 @@
                 return;
             }
             
-            const { year, commodity, transport, ruralUrban, tradeType } = currentFilters;
-            
-            // Start with routes based on currentDataSource (Route Filter)
-            // For heatmap, use all routes; for others, use the filtered subset
+            // Get base routes based on currentDataSource (Route Filter)
             let baseRoutes = allRoutesFlat;
             if (currentDataSource === 'major') {
                 baseRoutes = allRoutesFlat.filter(d => (d.flows || 0) >= 10);
@@ -1744,294 +1907,480 @@
                 baseRoutes = sorted.slice(0, 100);
             }
             
-            // Get all routes that match current filters (for calculating available options)
-            let filteredRoutes = baseRoutes.filter(route => {
-                // Apply rural-urban filter (works in all color modes)
-                if (ruralUrban !== 'all' && route.flow_type !== ruralUrban) {
-                    return false;
-                }
-                
-                // Apply international-domestic filter (works in all color modes)
-                if (tradeType !== 'all') {
-                    if (tradeType === 'international' && !route.is_international) return false;
-                    if (tradeType === 'domestic' && route.is_international) return false;
-                }
-                
-                // Apply commodity filter
-                if (commodity !== 'all' && route.by_commodity) {
-                    const targetCommodity = COMMODITY_MAP[commodity];
-                    if (!targetCommodity || !route.by_commodity[targetCommodity]) return false;
-                }
-                
-                // Apply transport filter
-                if (transport !== 'all' && route.by_transport) {
-                    if (!route.by_transport[transport]) return false;
-                }
-                
-                // Apply year filter
-                if (year !== 'all' && route.by_year) {
-                    if (!route.by_year[year]) return false;
-                }
-                
-                return true;
-            });
-            
-            // Calculate available options for each filter
-            const availableOptions = calculateAvailableOptions(filteredRoutes, currentFilters);
+            // Calculate available options for each filter (SIMPLIFIED)
+            const availableOptions = calculateAvailableOptions(baseRoutes, currentFilters);
             
             // Update interactive filter UI
             updateInteractiveFilterOptions(availableOptions, currentFilters);
         }
 
         /**
-         * Calculate available options based on filtered routes
-         * Uses "replacement" logic: shows what data is available if you REPLACE current filter
+         * Calculate available options - SIMPLIFIED LOGIC
+         * 
+         * NEW FILTERING PRINCIPLE:
+         * - When calculating options for a filter, EXCLUDE that filter's own condition
+         * - This means: selecting "Rice" keeps Rice's value unchanged, only affects other filters
+         * 
+         * Example: If user selects "Rice" and "2015":
+         * - Commodity filter: Shows ALL commodities' quantities for 2015 (Rice stays highlighted)
+         * - Year filter: Shows ALL years' quantities for Rice (2015 stays highlighted)
+         * - Transport filter: Shows transports used for Rice in 2015
+         * 
+         * This is much simpler and more intuitive than the old logic!
          */
         function calculateAvailableOptions(routes, currentFilters) {
-            const { year, commodity, transport, ruralUrban, tradeType } = currentFilters;
+            const { year, commodity, transport, ruralUrban, tradeType, viaCity } = currentFilters;
             
             const options = {
-                years: new Map(),  // Changed from Set to Map to store counts
+                years: new Map(),
                 commodities: new Map(),
                 transports: new Map(),
                 ruralUrban: new Map(),
-                tradeTypes: new Map()
+                tradeTypes: new Map(),
+                viaCities: new Map()
             };
             
-            // For each filter type, calculate what's available if we REPLACE that filter
-            // This gives accurate counts for "what if I select this option instead"
+            // Helper: Apply filters EXCEPT the specified filterType (supports multi-select)
+            function getFilteredRoutes(excludeFilter) {
+                return routes.filter(route => {
+                    // Apply commodity filter (unless excluded) - supports multiple selections
+                    if (excludeFilter !== 'commodity' && !commodity.includes('all')) {
+                        const hasMatchingCommodity = commodity.some(comm => {
+                            const targetCommodity = COMMODITY_MAP[comm];
+                            return route.by_commodity && route.by_commodity[targetCommodity];
+                        });
+                        if (!hasMatchingCommodity) return false;
+                    }
+                    
+                    // Apply transport filter (unless excluded) - supports multiple selections
+                    if (excludeFilter !== 'transport' && !transport.includes('all')) {
+                        const hasMatchingTransport = transport.some(trans => {
+                            return route.by_transport && route.by_transport[trans];
+                        });
+                        if (!hasMatchingTransport) return false;
+                    }
+                    
+                    // Apply year filter (unless excluded) - supports multiple selections
+                    if (excludeFilter !== 'year' && !year.includes('all')) {
+                        const hasMatchingYear = year.some(y => {
+                            return route.by_year && route.by_year[y];
+                        });
+                        if (!hasMatchingYear) return false;
+                    }
+                    
+                    // Apply rural-urban filter (unless excluded) - supports multiple selections
+                    if (excludeFilter !== 'ruralUrban' && !ruralUrban.includes('all')) {
+                        if (!ruralUrban.includes(route.flow_type)) return false;
+                    }
+                    
+                    // Apply trade type filter (unless excluded) - supports multiple selections
+                    if (excludeFilter !== 'tradeType' && !tradeType.includes('all')) {
+                        const routeTradeType = route.is_international ? 'international' : 'domestic';
+                        if (!tradeType.includes(routeTradeType)) return false;
+                    }
+                    
+                    // Apply via city filter (unless excluded) - supports multiple selections
+                    if (excludeFilter !== 'viaCity' && !viaCity.includes('all') && viaCity.length > 0) {
+                        // Check if route has a via_city and if it's in the selected list
+                        if (!route.via_city || !route.via_city.name) {
+                            // Route has no via_city, check if 'Direct' is selected
+                            if (!viaCity.includes('Direct')) return false;
+                        } else {
+                            // Route has via_city, check if it's in the selected list
+                            if (!viaCity.includes(route.via_city.name)) return false;
+                        }
+                    }
+                    
+                    return true;
+                });
+            }
             
-            // Calculate available years (considering ALL current filters including year)
-            routes.forEach(route => {
-                // Skip if doesn't match any filters INCLUDING year
-                const targetCommodity = commodity !== 'all' && route.by_commodity ? COMMODITY_MAP[commodity] : null;
-                if (commodity !== 'all' && route.by_commodity) {
-                    if (!targetCommodity || !route.by_commodity[targetCommodity]) return;
-                }
-                if (transport !== 'all' && route.by_transport && !route.by_transport[transport]) return;
-                if (ruralUrban !== 'all' && route.flow_type !== ruralUrban) return;
-                if (tradeType !== 'all') {
-                    if (tradeType === 'international' && !route.is_international) return;
-                    if (tradeType === 'domestic' && route.is_international) return;
-                }
+            // Calculate commodities (exclude commodity filter)
+            const routesForCommodities = getFilteredRoutes('commodity');
+            routesForCommodities.forEach(route => {
+                // Get commodity data based on active filters
+                let commoditySource = null;
                 
-                // Add available years with quantity counts
-                if (route.by_year) {
-                    Object.entries(route.by_year).forEach(([y, data]) => {
-                        // If year filter is active, only show that year
-                        if (year !== 'all' && y !== year) return;
-                        
-                        let quantityCount = data.quantity || 0;
-                        
-                        // If commodity is selected, estimate quantity for that commodity in this year
-                        if (targetCommodity && data.commodities && data.commodities[targetCommodity]) {
-                            // Estimate by proportion: (commodity flows / total flows) * year quantity
-                            const yearTotalFlows = Object.values(data.commodities).reduce((a, b) => a + b, 0);
-                            const commodityFlows = data.commodities[targetCommodity];
-                            quantityCount = yearTotalFlows > 0 ? (commodityFlows / yearTotalFlows) * quantityCount : 0;
-                        } else if (targetCommodity) {
-                            return; // This year doesn't have this commodity
+                // Priority 1: Transport-specific data (if transport is selected)
+                if (!transport.includes('all') && route.by_transport) {
+                    // Merge commodities from all selected transports
+                    commoditySource = {};
+                    transport.forEach(trans => {
+                        if (route.by_transport[trans] && route.by_transport[trans].commodities) {
+                            Object.entries(route.by_transport[trans].commodities).forEach(([comm, qty]) => {
+                                commoditySource[comm] = (commoditySource[comm] || 0) + qty;
+                            });
                         }
-                        
-                        // If transport is selected, estimate quantity for that transport in this year
-                        if (transport !== 'all' && data.transport_modes && data.transport_modes[transport]) {
-                            // If both commodity and transport are selected, we approximate
-                            if (!targetCommodity) {
-                                const yearTotalFlows = Object.values(data.transport_modes).reduce((a, b) => a + b, 0);
-                                const transportFlows = data.transport_modes[transport];
-                                quantityCount = yearTotalFlows > 0 ? (transportFlows / yearTotalFlows) * (data.quantity || 0) : 0;
-                            }
-                        } else if (transport !== 'all') {
-                            return; // This year doesn't have this transport mode
-                        }
-                        
-                        const count = options.years.get(y) || 0;
-                        options.years.set(y, count + quantityCount);
+                    });
+                }
+                // Priority 2: Year-specific data (if year is selected)
+                else if (!year.includes('all') && route.by_year) {
+                    commoditySource = {};
+                    year.forEach(y => {
+                        if (route.by_year[y] && route.by_year[y].commodities) {
+                            Object.entries(route.by_year[y].commodities).forEach(([comm, qty]) => {
+                                commoditySource[comm] = (commoditySource[comm] || 0) + qty;
                     });
                 }
             });
+                } 
+                // Priority 3: Overall data
+                else {
+                    commoditySource = {};
+                    if (route.by_commodity) {
+                        Object.entries(route.by_commodity).forEach(([comm, data]) => {
+                            commoditySource[comm] = data.quantity || 0;
+                        });
+                    }
+                }
+                
+                // Add to options
+                Object.entries(commoditySource).forEach(([comm, quantity]) => {
+                    const count = options.commodities.get(comm) || 0;
+                    options.commodities.set(comm, count + quantity);
+                });
+            });
             
-            // Calculate available commodities (considering other filters, but replacing commodity filter)
-            routes.forEach(route => {
-                if (transport !== 'all' && route.by_transport && !route.by_transport[transport]) return;
-                if (year !== 'all' && route.by_year && !route.by_year[year]) return;
-                if (ruralUrban !== 'all' && route.flow_type !== ruralUrban) return;
-                if (tradeType !== 'all') {
-                    if (tradeType === 'international' && !route.is_international) return;
-                    if (tradeType === 'domestic' && route.is_international) return;
-                }
+            // Calculate transports (exclude transport filter)
+            const routesForTransports = getFilteredRoutes('transport');
+            routesForTransports.forEach(route => {
+                // Get transport data based on active filters
+                let transportSource = null;
                 
-                // Get the correct quantity based on year filter
-                let totalQuantity = route.quantity || 0;
-                if (year !== 'all' && route.by_year && route.by_year[year]) {
-                    totalQuantity = route.by_year[year].quantity || 0;
-                }
-                
-                // Get commodities from the appropriate source based on year and transport filters
-                let commoditiesSource = route.by_commodity;
-                
-                // Priority: year filter takes precedence
-                if (year !== 'all' && route.by_year && route.by_year[year]) {
-                    // Use year-specific commodity data
-                    // Estimate quantity by proportional allocation from by_commodity
-                    commoditiesSource = { };
-                    const yearData = route.by_year[year];
+                // Priority 1: Year-specific data (if year is selected)
+                if (!year.includes('all') && route.by_year) {
+                    transportSource = {};
+                    year.forEach(y => {
+                        const yearData = route.by_year[y];
+                        if (yearData && yearData.transport_modes) {
                     const yearQuantity = yearData.quantity || 0;
-                    
-                    if (yearData.commodities && route.by_commodity) {
-                        // Calculate total flows in this year for proportion
-                        const yearTotalFlows = Object.values(yearData.commodities).reduce((a, b) => a + b, 0);
+                            const totalYearFlows = Object.values(yearData.transport_modes).reduce((a, b) => a + b, 0);
+                            
+                            Object.entries(yearData.transport_modes).forEach(([trans, flows]) => {
+                                // Distribute quantity by flow proportion (to avoid double-counting)
+                                const quantity = totalYearFlows > 0 
+                                    ? (flows / totalYearFlows) * yearQuantity 
+                                    : 0;
+                                transportSource[trans] = (transportSource[trans] || 0) + quantity;
+                            });
+                        }
+                    });
+                } 
+                // Priority 2: Commodity-specific data (if commodity is selected)
+                else if (!commodity.includes('all') && route.by_commodity) {
+                    transportSource = {};
+                    commodity.forEach(comm => {
+                        const targetCommodity = COMMODITY_MAP[comm];
+                        const commodityData = route.by_commodity[targetCommodity];
                         
-                        Object.entries(yearData.commodities).forEach(([comm, flows]) => {
-                            // Estimate quantity by proportion: (flows in year / total flows in year) * year quantity
-                            const estimatedQuantity = yearTotalFlows > 0 ? (flows / yearTotalFlows) * yearQuantity : 0;
-                            commoditiesSource[comm] = { quantity: estimatedQuantity };
-                        });
-                    }
-                } else if (transport !== 'all' && route.by_transport && route.by_transport[transport]) {
-                    // Use transport-specific commodity data with actual quantity
-                    commoditiesSource = { };
-                    const transportData = route.by_transport[transport];
-                    
-                    if (transportData.commodities && route.by_commodity) {
-                        Object.entries(transportData.commodities).forEach(([comm, flows]) => {
-                            // Use actual quantity from by_commodity (this commodity is transported by this transport)
-                            const actualQuantity = route.by_commodity[comm] ? (route.by_commodity[comm].quantity || 0) : 0;
-                            commoditiesSource[comm] = { quantity: actualQuantity };
+                        if (commodityData) {
+                            const commodityQuantity = commodityData.quantity || 0;
+                            
+                            if (commodityData.transport_modes) {
+                                // Calculate total flows for this commodity
+                                let totalCommodityFlows = 0;
+                                Object.entries(commodityData.transport_modes).forEach(([trans, transData]) => {
+                                    const flow = typeof transData === 'object' ? (transData.flow || 0) : transData;
+                                    totalCommodityFlows += flow;
+                                });
+                                
+                                // Distribute quantity by flow proportion
+                                Object.entries(commodityData.transport_modes).forEach(([trans, transData]) => {
+                                    const flow = typeof transData === 'object' ? (transData.flow || 0) : transData;
+                                    const quantity = totalCommodityFlows > 0 
+                                        ? (flow / totalCommodityFlows) * commodityQuantity 
+                                        : 0;
+                                    transportSource[trans] = (transportSource[trans] || 0) + quantity;
+                                });
+                            }
+                        }
+                    });
+                }
+                // Priority 3: Overall data
+                else {
+                    transportSource = {};
+                    if (route.by_transport) {
+                        Object.entries(route.by_transport).forEach(([trans, data]) => {
+                            transportSource[trans] = data.quantity || 0;
                         });
                     }
                 }
                 
-                if (commoditiesSource && Object.keys(commoditiesSource).length > 0) {
-                    // Route has commodity breakdown data
-                    let commodityQuantitySum = 0;
-                    Object.entries(commoditiesSource).forEach(([comm, data]) => {
-                        const quantity = data.quantity || 0;
-                        const count = options.commodities.get(comm) || 0;
-                        options.commodities.set(comm, count + quantity);
-                        commodityQuantitySum += quantity;
+                // Add to options
+                if (transportSource) {
+                    Object.entries(transportSource).forEach(([trans, quantity]) => {
+                        const count = options.transports.get(trans) || 0;
+                        options.transports.set(trans, count + quantity);
                     });
-                    
-                    // Add unclassified quantity (difference between total and commodity sum)
-                    const unclassifiedQuantity = totalQuantity - commodityQuantitySum;
-                    if (unclassifiedQuantity > 0) {
-                        const unclassifiedCount = options.commodities.get('Unclassified') || 0;
-                        options.commodities.set('Unclassified', unclassifiedCount + unclassifiedQuantity);
-                    }
-                } else {
-                    // Route has no commodity data - add to "Unclassified" category
-                    const unclassifiedCount = options.commodities.get('Unclassified') || 0;
-                    options.commodities.set('Unclassified', unclassifiedCount + totalQuantity);
                 }
             });
             
-            // Calculate available transports (considering other filters, but replacing transport filter)
-            routes.forEach(route => {
-                const targetCommodity = commodity !== 'all' && route.by_commodity ? COMMODITY_MAP[commodity] : null;
-                if (commodity !== 'all' && route.by_commodity) {
-                    if (!targetCommodity || !route.by_commodity[targetCommodity]) return;
-                }
-                if (year !== 'all' && route.by_year && !route.by_year[year]) return;
-                if (ruralUrban !== 'all' && route.flow_type !== ruralUrban) return;
-                if (tradeType !== 'all') {
-                    if (tradeType === 'international' && !route.is_international) return;
-                    if (tradeType === 'domestic' && route.is_international) return;
-                }
+            // Calculate years (exclude year filter)
+            const routesForYears = getFilteredRoutes('year');
+            routesForYears.forEach(route => {
+                if (!route.by_year) return;
                 
-                // Get the correct quantity based on year filter
-                let quantityCount = route.quantity || 0;
-                if (year !== 'all' && route.by_year && route.by_year[year]) {
-                    quantityCount = route.by_year[year].quantity || 0;
-                }
-                
-                // Get transports from the appropriate source based on year and commodity filters
-                let transportsSource = route.by_transport;
-                
-                // Priority: year filter takes precedence
-                if (year !== 'all' && route.by_year && route.by_year[year]) {
-                    // Use year-specific transport data
-                    transportsSource = { };
-                    const yearData = route.by_year[year];
-                    if (yearData.transport_modes) {
-                        Object.entries(yearData.transport_modes).forEach(([trans, flows]) => {
-                            // year transport_modes only has flows, approximate quantity from route.by_transport
-                            const transportQuantity = route.by_transport && route.by_transport[trans] ? 
-                                route.by_transport[trans].quantity || 0 : flows;
-                            transportsSource[trans] = { 
-                                flows: flows,
-                                quantity: transportQuantity
-                            };
-                        });
-                    }
-                } else if (targetCommodity && route.by_commodity && route.by_commodity[targetCommodity]) {
-                    // Use commodity-specific transport data
-                    transportsSource = { };
-                    const commodityData = route.by_commodity[targetCommodity];
-                    if (commodityData.transport_modes) {
-                        Object.entries(commodityData.transport_modes).forEach(([trans, transData]) => {
-                            // transport_modes stores full transport object {flow, quantity}
-                            if (typeof transData === 'object') {
-                                transportsSource[trans] = {
-                                    flows: transData.flow || 0,
-                                    quantity: transData.quantity || 0
-                                };
-                            } else {
-                                // Fallback: if it's just a number, treat as flows
-                                transportsSource[trans] = {
-                                    flows: transData,
-                                    quantity: transData
-                                };
+                Object.entries(route.by_year).forEach(([y, yearData]) => {
+                    let quantity = yearData.quantity || 0;
+                    
+                    // If transport is selected, calculate based on selected transports proportion in this year
+                    if (!transport.includes('all')) {
+                        let transportQuantity = 0;
+                        const totalFlows = Object.values(yearData.transport_modes || {}).reduce((a, b) => a + b, 0);
+                        
+                        transport.forEach(trans => {
+                            if (yearData.transport_modes && yearData.transport_modes[trans]) {
+                                const transportFlows = yearData.transport_modes[trans];
+                                transportQuantity += totalFlows > 0 ? (transportFlows / totalFlows) * quantity : 0;
                             }
                         });
+                        
+                        quantity = transportQuantity;
+                        if (quantity === 0) return; // No selected transport in this year
                     }
+                    
+                    // If commodity is selected, calculate proportion from selected commodities
+                    if (!commodity.includes('all')) {
+                        let commodityQuantity = 0;
+                        
+                        commodity.forEach(comm => {
+                            const targetCommodity = COMMODITY_MAP[comm];
+                            if (yearData.commodities && yearData.commodities[targetCommodity]) {
+                                // If transport was also selected, approximate the intersection
+                                if (!transport.includes('all')) {
+                                    const totalCommodityQuantity = Object.values(yearData.commodities).reduce((a, b) => a + b, 0);
+                                    const thisCommodityQuantity = yearData.commodities[targetCommodity];
+                                    commodityQuantity += totalCommodityQuantity > 0 
+                                        ? (thisCommodityQuantity / totalCommodityQuantity) * quantity 
+                                        : 0;
+                } else {
+                                    commodityQuantity += yearData.commodities[targetCommodity];
+                                }
+                            }
+                        });
+                        
+                        quantity = commodityQuantity;
+                        if (quantity === 0) return; // No selected commodity in this year
+                    }
+                    
+                    const count = options.years.get(y) || 0;
+                    options.years.set(y, count + quantity);
+                });
+            });
+            
+            // Calculate rural-urban (exclude ruralUrban filter)
+            const routesForRuralUrban = getFilteredRoutes('ruralUrban');
+            routesForRuralUrban.forEach(route => {
+                // Calculate quantity based on other active filters
+                let quantityCount = route.quantity || 0;
+                
+                // Priority 1: If transport is selected, sum up selected transports
+                if (!transport.includes('all') && route.by_transport) {
+                    quantityCount = 0;
+                    transport.forEach(trans => {
+                        if (route.by_transport[trans]) {
+                            let transQuantity = route.by_transport[trans].quantity || 0;
+                            
+                            // If commodity is also selected
+                            if (!commodity.includes('all')) {
+                                let commTransQuantity = 0;
+                                commodity.forEach(comm => {
+                                    const targetCommodity = COMMODITY_MAP[comm];
+                                    const transportData = route.by_transport[trans];
+                                    if (transportData.commodities && transportData.commodities[targetCommodity]) {
+                                        commTransQuantity += transportData.commodities[targetCommodity];
+                                    }
+                                });
+                                transQuantity = commTransQuantity;
+                            }
+                            quantityCount += transQuantity;
+                        }
+                    });
+                    if (quantityCount === 0) return;
+                }
+                // Priority 2: If year is selected (and transport is not)
+                else if (!year.includes('all') && route.by_year) {
+                    quantityCount = 0;
+                    year.forEach(y => {
+                        const yearData = route.by_year[y];
+                        if (yearData) {
+                            let yearQuantity = yearData.quantity || 0;
+                            
+                            // If commodity is also selected
+                            if (!commodity.includes('all')) {
+                                let commYearQuantity = 0;
+                                commodity.forEach(comm => {
+                                    const targetCommodity = COMMODITY_MAP[comm];
+                                    if (yearData.commodities && yearData.commodities[targetCommodity]) {
+                                        commYearQuantity += yearData.commodities[targetCommodity];
+                                    }
+                                });
+                                yearQuantity = commYearQuantity;
+                            }
+                            quantityCount += yearQuantity;
+                        }
+                    });
+                    if (quantityCount === 0) return;
+                }
+                // Priority 3: If only commodity is selected
+                else if (!commodity.includes('all') && route.by_commodity) {
+                    quantityCount = 0;
+                    commodity.forEach(comm => {
+                        const targetCommodity = COMMODITY_MAP[comm];
+                        if (route.by_commodity[targetCommodity]) {
+                            quantityCount += route.by_commodity[targetCommodity].quantity || 0;
+                        }
+                    });
+                    if (quantityCount === 0) return;
                 }
                 
-                if (transportsSource && Object.keys(transportsSource).length > 0) {
-                    // Route has transport breakdown data
-                    Object.entries(transportsSource).forEach(([trans, data]) => {
-                        const count = options.transports.get(trans) || 0;
-                        // Use quantity for transport bars (to match other statistics)
-                        const quantityToAdd = data.quantity || data.flows || 0;
-                        options.transports.set(trans, count + quantityToAdd);
-                    });
-                } else {
-                    // Route has no transport data - add to "Unknown" category
-                    const unknownCount = options.transports.get('Unknown') || 0;
-                    options.transports.set('Unknown', unknownCount + quantityCount);
+                if (route.flow_type) {
+                    const count = options.ruralUrban.get(route.flow_type) || 0;
+                    options.ruralUrban.set(route.flow_type, count + quantityCount);
                 }
             });
             
-            // Calculate rural-urban and trade types (considering ALL filters) - use quantity
-            routes.forEach(route => {
-                if (commodity !== 'all' && route.by_commodity) {
-                    const targetCommodity = COMMODITY_MAP[commodity];
-                    if (!targetCommodity || !route.by_commodity[targetCommodity]) return;
-                }
-                if (transport !== 'all' && route.by_transport && !route.by_transport[transport]) return;
-                if (year !== 'all' && route.by_year && !route.by_year[year]) return;
-                
-                // Get the correct quantity based on year filter
+            // Calculate trade types (exclude tradeType filter) - same logic as rural-urban
+            const routesForTradeTypes = getFilteredRoutes('tradeType');
+            routesForTradeTypes.forEach(route => {
+                // Calculate quantity based on other active filters
                 let quantityCount = route.quantity || 0;
-                if (year !== 'all' && route.by_year && route.by_year[year]) {
-                    quantityCount = route.by_year[year].quantity || 0;
-                }
                 
-                const flowType = route.flow_type;
-                if (flowType) {
-                    // If ruralUrban filter is active, only show that type
-                    if (ruralUrban !== 'all' && flowType !== ruralUrban) return;
-                    
-                    const count = options.ruralUrban.get(flowType) || 0;
-                    options.ruralUrban.set(flowType, count + quantityCount);
+                // Priority 1: If transport is selected, sum up selected transports
+                if (!transport.includes('all') && route.by_transport) {
+                    quantityCount = 0;
+                    transport.forEach(trans => {
+                        if (route.by_transport[trans]) {
+                            let transQuantity = route.by_transport[trans].quantity || 0;
+                            
+                            // If commodity is also selected
+                            if (!commodity.includes('all')) {
+                                let commTransQuantity = 0;
+                                commodity.forEach(comm => {
+                                    const targetCommodity = COMMODITY_MAP[comm];
+                                    const transportData = route.by_transport[trans];
+                                    if (transportData.commodities && transportData.commodities[targetCommodity]) {
+                                        commTransQuantity += transportData.commodities[targetCommodity];
+                                    }
+                                });
+                                transQuantity = commTransQuantity;
+                            }
+                            quantityCount += transQuantity;
+                        }
+                    });
+                    if (quantityCount === 0) return;
+                }
+                // Priority 2: If year is selected (and transport is not)
+                else if (!year.includes('all') && route.by_year) {
+                    quantityCount = 0;
+                    year.forEach(y => {
+                        const yearData = route.by_year[y];
+                        if (yearData) {
+                            let yearQuantity = yearData.quantity || 0;
+                            
+                            // If commodity is also selected
+                            if (!commodity.includes('all')) {
+                                let commYearQuantity = 0;
+                                commodity.forEach(comm => {
+                                    const targetCommodity = COMMODITY_MAP[comm];
+                                    if (yearData.commodities && yearData.commodities[targetCommodity]) {
+                                        commYearQuantity += yearData.commodities[targetCommodity];
+                                    }
+                                });
+                                yearQuantity = commYearQuantity;
+                            }
+                            quantityCount += yearQuantity;
+                        }
+                    });
+                    if (quantityCount === 0) return;
+                }
+                // Priority 3: If only commodity is selected
+                else if (!commodity.includes('all') && route.by_commodity) {
+                    quantityCount = 0;
+                    commodity.forEach(comm => {
+                        const targetCommodity = COMMODITY_MAP[comm];
+                        if (route.by_commodity[targetCommodity]) {
+                            quantityCount += route.by_commodity[targetCommodity].quantity || 0;
+                        }
+                    });
+                    if (quantityCount === 0) return;
                 }
                 
                 const trade = route.is_international ? 'international' : 'domestic';
+                const count = options.tradeTypes.get(trade) || 0;
+                options.tradeTypes.set(trade, count + quantityCount);
+            });
+            
+            // Calculate via cities (exclude viaCity filter)
+            const routesForViaCities = getFilteredRoutes('viaCity');
+            routesForViaCities.forEach(route => {
+                // Calculate quantity based on other active filters (same as trade types)
+                let quantityCount = route.quantity || 0;
                 
-                // If tradeType filter is active, only show that type
-                if (tradeType !== 'all' && trade !== tradeType) return;
+                // Priority 1: If transport is selected, sum up selected transports
+                if (!transport.includes('all') && route.by_transport) {
+                    quantityCount = 0;
+                    transport.forEach(trans => {
+                        if (route.by_transport[trans]) {
+                            let transQuantity = route.by_transport[trans].quantity || 0;
+                            
+                            // If commodity is also selected
+                            if (!commodity.includes('all')) {
+                                let commTransQuantity = 0;
+                                commodity.forEach(comm => {
+                                    const targetCommodity = COMMODITY_MAP[comm];
+                                    const transportData = route.by_transport[trans];
+                                    if (transportData.commodities && transportData.commodities[targetCommodity]) {
+                                        commTransQuantity += transportData.commodities[targetCommodity];
+                                    }
+                                });
+                                transQuantity = commTransQuantity;
+                            }
+                            quantityCount += transQuantity;
+                        }
+                    });
+                    if (quantityCount === 0) return;
+                }
+                // Priority 2: If year is selected (and transport is not)
+                else if (!year.includes('all') && route.by_year) {
+                    quantityCount = 0;
+                    year.forEach(y => {
+                        const yearData = route.by_year[y];
+                        if (yearData) {
+                            let yearQuantity = yearData.quantity || 0;
+                            
+                            // If commodity is also selected
+                            if (!commodity.includes('all')) {
+                                let commYearQuantity = 0;
+                                commodity.forEach(comm => {
+                                    const targetCommodity = COMMODITY_MAP[comm];
+                                    if (yearData.commodities && yearData.commodities[targetCommodity]) {
+                                        commYearQuantity += yearData.commodities[targetCommodity];
+                                    }
+                                });
+                                yearQuantity = commYearQuantity;
+                            }
+                            quantityCount += yearQuantity;
+                        }
+                    });
+                    if (quantityCount === 0) return;
+                }
+                // Priority 3: If only commodity is selected
+                else if (!commodity.includes('all') && route.by_commodity) {
+                    quantityCount = 0;
+                    commodity.forEach(comm => {
+                        const targetCommodity = COMMODITY_MAP[comm];
+                        if (route.by_commodity[targetCommodity]) {
+                            quantityCount += route.by_commodity[targetCommodity].quantity || 0;
+                        }
+                    });
+                    if (quantityCount === 0) return;
+                }
                 
-                const tradeCount = options.tradeTypes.get(trade) || 0;
-                options.tradeTypes.set(trade, tradeCount + quantityCount);
+                // Categorize by via_city
+                const viaCityName = route.via_city && route.via_city.name ? route.via_city.name : 'Direct';
+                const count = options.viaCities.get(viaCityName) || 0;
+                options.viaCities.set(viaCityName, count + quantityCount);
             });
             
             return options;
@@ -2044,6 +2393,7 @@
             // Regenerate commodity and transport options with updated data
             generateCommodityCards(availableOptions.commodities);
             generateTransportBars(availableOptions.transports);
+            generateViaCityBars(availableOptions.viaCities);
             
             // Restore active state for current selections
             restoreActiveState(currentFilters);
@@ -2065,36 +2415,97 @@
          * Restore active state after regenerating filter options
          */
         function restoreActiveState(currentFilters) {
-            const { commodity, transport } = currentFilters;
+            const { commodity, transport, viaCity } = currentFilters;
             
-            // Restore commodity active state
-            if (commodity && commodity !== 'all') {
+            // Restore commodity active state (supports multi-select)
                 const commodityCards = document.querySelectorAll('.commodity-card');
                 commodityCards.forEach(card => {
-                    card.classList.remove('active');
                     const nameEl = card.querySelector('.commodity-name');
                     if (nameEl) {
                         const name = nameEl.textContent.trim();
-                        // Find if this card matches current selection
-                        const dataName = COMMODITY_MAP[commodity];
-                        if (dataName === name) {
+                    
+                    // Check if 'All' card
+                    if (name === 'All') {
+                        if (!commodity || commodity.length === 0 || commodity.includes('all')) {
                             card.classList.add('active');
+                        } else {
+                            card.classList.remove('active');
                         }
+                    } else {
+                        // Check if this commodity is in the selected array
+                        let isSelected = false;
+                        if (commodity && !commodity.includes('all')) {
+                            commodity.forEach(comm => {
+                                const dataName = COMMODITY_MAP[comm];
+                                if (dataName === name) {
+                                    isSelected = true;
                     }
                 });
             }
             
-            // Restore transport active state
-            if (transport && transport !== 'all') {
+                        if (isSelected) {
+                            card.classList.add('active');
+                        } else {
+                            card.classList.remove('active');
+                        }
+                    }
+                }
+            });
+            
+            // Restore transport active state (supports multi-select)
                 const transportBars = document.querySelectorAll('#transportBars .filter-bar-item');
                 transportBars.forEach(bar => {
-                    bar.classList.remove('active');
                     const labelEl = bar.querySelector('.filter-bar-label');
-                    if (labelEl && labelEl.textContent.trim() === transport) {
+                if (labelEl) {
+                    const label = labelEl.textContent.trim();
+                    
+                    // Check if 'All Modes' bar
+                    if (label === 'All Modes') {
+                        if (!transport || transport.length === 0 || transport.includes('all')) {
                         bar.classList.add('active');
+                        } else {
+                            bar.classList.remove('active');
+                        }
+                    } else {
+                        // Check if this transport is in the selected array
+                        const isSelected = transport && transport.length > 0 && !transport.includes('all') && transport.includes(label);
+                        
+                        if (isSelected) {
+                            bar.classList.add('active');
+                        } else {
+                            bar.classList.remove('active');
+                        }
                     }
-                });
-            }
+                }
+            });
+            
+            // Restore via city active state (supports multi-select)
+            const viaCityBars = document.querySelectorAll('#viaCityBars .filter-bar-item');
+            viaCityBars.forEach(bar => {
+                const labelEl = bar.querySelector('.filter-bar-label');
+                if (labelEl) {
+                    const label = labelEl.textContent.trim();
+                    
+                    // Check if 'All Routes' bar
+                    if (label === 'All Routes') {
+                        if (!viaCity || viaCity.length === 0 || viaCity.includes('all')) {
+                            bar.classList.add('active');
+                        } else {
+                            bar.classList.remove('active');
+                        }
+                    } else {
+                        // Remove icons from label for comparison
+                        const cleanLabel = label.replace(/^[→⤴]\s*/, '');
+                        const isSelected = viaCity && viaCity.length > 0 && !viaCity.includes('all') && viaCity.includes(cleanLabel);
+                        
+                        if (isSelected) {
+                            bar.classList.add('active');
+                        } else {
+                            bar.classList.remove('active');
+                        }
+                    }
+                }
+            });
         }
 
         /**
@@ -2109,7 +2520,7 @@
          * @param {Function} onSelect - Callback when segment is clicked
          * @param {boolean} sortByKey - If true, sort by key (e.g., years), otherwise by value
          */
-        function generateStackedBarChart(containerId, legendId, dataMap, allDataMap, colorMap, labelMap, selectedKey, onSelect, sortByKey = false) {
+        function generateStackedBarChart(containerId, legendId, dataMap, allDataMap, colorMap, labelMap, selectedKeys, onSelect, sortByKey = false) {
             const container = document.getElementById(containerId);
             
             if (!container) return;
@@ -2121,6 +2532,9 @@
             // Clear existing content
             container.innerHTML = '';
             
+            // selectedKeys is now an array for multi-select support
+            const selectedArray = Array.isArray(selectedKeys) ? selectedKeys : (selectedKeys ? [selectedKeys] : []);
+            
             // Generate bar segments from dataMap
             const sortedEntries = sortByKey 
                 ? Array.from(dataMap.entries()).sort((a, b) => a[0].localeCompare(b[0]))  // Sort by key (for years)
@@ -2130,7 +2544,7 @@
                 const percentage = (value / total) * 100;
                 const color = colorMap[key] || '#999';
                 const label = labelMap ? labelMap[key] : key;
-                const isSelected = selectedKey === key;
+                const isSelected = selectedArray.includes(key);
                 
                 // Get value from allDataMap for display
                 const displayValue = allDataMap.get(key) || value;
@@ -2141,12 +2555,8 @@
                 segment.style.width = `${percentage}%`;
                 segment.style.backgroundColor = color;
                 segment.onclick = () => {
-                    // If already selected, deselect (return to 'all')
-                    if (isSelected) {
-                        onSelect('all');
-                    } else {
+                    // Toggle selection
                         onSelect(key);
-                    }
                 };
                 
                 // Add label with percentage if segment is wide enough
@@ -2181,11 +2591,8 @@
         }
 
         function updateYearFilterOptions(availableYears) {
-            const yearFilter = document.getElementById('yearFilter');
-            const selectedYear = yearFilter ? yearFilter.value : 'all';
-            
-            // Use filtered data for bar, global data for legend
-            // This way: bar shows only current selection, legend shows all options
+            // Get selected years from global state
+            const selectedYears = selectedFilters.years.length > 0 ? selectedFilters.years : [];
             
             generateStackedBarChart(
                 'yearStackedBar',
@@ -2194,7 +2601,7 @@
                 globalStats.years,       // All years for legend
                 STACKED_BAR_COLORS,
                 null, // Use keys as labels
-                selectedYear === 'all' ? null : selectedYear,
+                selectedYears,  // Pass array of selected years
                 (year) => selectYearStat(null, year),
                 true  // Sort by year (chronologically)
             );
@@ -2202,10 +2609,8 @@
 
 
         function updateRuralUrbanFilterOptions(availableRuralUrban) {
-            const ruralUrbanFilter = document.getElementById('ruralUrbanFilter');
-            const selectedType = ruralUrbanFilter ? ruralUrbanFilter.value : 'all';
-            
-            // Use filtered data for bar, global data for legend
+            // Get selected rural-urban types from global state
+            const selectedTypes = selectedFilters.ruralUrban.length > 0 ? selectedFilters.ruralUrban : [];
             
             generateStackedBarChart(
                 'ruralUrbanStackedBar',
@@ -2214,16 +2619,14 @@
                 globalStats.ruralUrban,     // All types for legend
                 STACKED_BAR_COLORS,
                 FLOW_PATTERN_LABELS,
-                selectedType === 'all' ? null : selectedType,
+                selectedTypes,  // Pass array of selected types
                 (type) => selectRuralUrbanStat(null, type)
             );
         }
 
         function updateTradeTypeFilterOptions(availableTradeTypes) {
-            const tradeTypeFilter = document.getElementById('tradeTypeFilter');
-            const selectedType = tradeTypeFilter ? tradeTypeFilter.value : 'all';
-            
-            // Use filtered data for bar, global data for legend
+            // Get selected trade types from global state
+            const selectedTypes = selectedFilters.tradeTypes.length > 0 ? selectedFilters.tradeTypes : [];
             
             generateStackedBarChart(
                 'tradeTypeStackedBar',
@@ -2232,7 +2635,7 @@
                 globalStats.tradeTypes,     // All types for legend
                 STACKED_BAR_COLORS,
                 TRADE_TYPE_LABELS,
-                selectedType === 'all' ? null : selectedType,
+                selectedTypes,  // Pass array of selected types
                 (type) => selectTradeTypeStat(null, type)
             );
         }
@@ -2349,37 +2752,54 @@
             });
         }
 
+        // Global state for multi-select filters
+        let selectedFilters = {
+            years: [],
+            commodities: [],
+            transports: [],
+            ruralUrban: [],
+            tradeTypes: [],
+            viaCities: []  // Add via_city filter
+        };
+
         function filterAndUpdate() {
-            // Get values from either interactive or traditional mode
-            const yearFilter = document.getElementById('yearFilter');
-            const commodityFilter = document.getElementById('commodityFilter');
-            const transportFilter = document.getElementById('transportFilter');
-            const ruralUrbanFilter = document.getElementById('ruralUrbanFilter');
-            const tradeTypeFilter = document.getElementById('tradeTypeFilter');
-            
-            const year = yearFilter ? yearFilter.value : 'all';
-            const commodity = commodityFilter ? commodityFilter.value : 'all';
-            const transport = transportFilter ? transportFilter.value : 'all';
-            const ruralUrban = ruralUrbanFilter ? ruralUrbanFilter.value : 'all';
-            const tradeType = tradeTypeFilter ? tradeTypeFilter.value : 'all';
+            // Get values from global state (multi-select)
+            const year = selectedFilters.years.length > 0 ? selectedFilters.years : ['all'];
+            const commodity = selectedFilters.commodities.length > 0 ? selectedFilters.commodities : ['all'];
+            const transport = selectedFilters.transports.length > 0 ? selectedFilters.transports : ['all'];
+            const ruralUrban = selectedFilters.ruralUrban.length > 0 ? selectedFilters.ruralUrban : ['all'];
+            const tradeType = selectedFilters.tradeTypes.length > 0 ? selectedFilters.tradeTypes : ['all'];
+            const viaCity = selectedFilters.viaCities.length > 0 ? selectedFilters.viaCities : ['all'];
             
             // Update filter options based on current selections (constraints)
-            updateFilterOptions({ year, commodity, transport, ruralUrban, tradeType });
+            updateFilterOptions({ year, commodity, transport, ruralUrban, tradeType, viaCity });
             
             if (currentDataSource === 'heatmap') {
                 // For heatmap: filter routes first, then generate heatmap from filtered data
                 const filters = { year, commodity, transport };
                 
                 let routesToAggregate = allRoutesFlat.map(route => {
-                    // Apply rural-urban filter (works in all color modes)
-                    if (ruralUrban !== 'all' && route.flow_type !== ruralUrban) {
+                    // Apply rural-urban filter (works in all color modes) - supports multiple selections
+                    if (!ruralUrban.includes('all') && ruralUrban.length > 0) {
+                        if (!ruralUrban.includes(route.flow_type)) {
                         return null;
+                        }
                     }
                     
-                    // Apply international-domestic filter (works in all color modes)
-                    if (tradeType !== 'all') {
-                        if (tradeType === 'international' && !route.is_international) return null;
-                        if (tradeType === 'domestic' && route.is_international) return null;
+                    // Apply international-domestic filter (works in all color modes) - supports multiple selections
+                    if (!tradeType.includes('all') && tradeType.length > 0) {
+                        const routeTradeType = route.is_international ? 'international' : 'domestic';
+                        if (!tradeType.includes(routeTradeType)) {
+                            return null;
+                        }
+                    }
+                    
+                    // Apply via city filter - supports multiple selections
+                    if (!viaCity.includes('all') && viaCity.length > 0) {
+                        const routeViaCity = route.via_city && route.via_city.name ? route.via_city.name : 'Direct';
+                        if (!viaCity.includes(routeViaCity)) {
+                            return null;
+                        }
                     }
                     
                     // Get precise display data based on filters
@@ -2404,15 +2824,27 @@
                 const filters = { year, commodity, transport };
                 
                 filteredRoutes = data.map(route => {
-                    // Apply rural-urban filter (works in all color modes)
-                    if (ruralUrban !== 'all' && route.flow_type !== ruralUrban) {
+                    // Apply rural-urban filter (works in all color modes) - supports multiple selections
+                    if (!ruralUrban.includes('all') && ruralUrban.length > 0) {
+                        if (!ruralUrban.includes(route.flow_type)) {
                         return null;
+                        }
                     }
                     
-                    // Apply international-domestic filter (works in all color modes)
-                    if (tradeType !== 'all') {
-                        if (tradeType === 'international' && !route.is_international) return null;
-                        if (tradeType === 'domestic' && route.is_international) return null;
+                    // Apply international-domestic filter (works in all color modes) - supports multiple selections
+                    if (!tradeType.includes('all') && tradeType.length > 0) {
+                        const routeTradeType = route.is_international ? 'international' : 'domestic';
+                        if (!tradeType.includes(routeTradeType)) {
+                            return null;
+                        }
+                    }
+                    
+                    // Apply via city filter - supports multiple selections
+                    if (!viaCity.includes('all') && viaCity.length > 0) {
+                        const routeViaCity = route.via_city && route.via_city.name ? route.via_city.name : 'Direct';
+                        if (!viaCity.includes(routeViaCity)) {
+                            return null;
+                        }
                     }
                     
                     // Get precise display data based on filters
@@ -2544,6 +2976,7 @@
             if (!deckgl) return; // Ensure deckgl is initialized
             
             const arcWidth = parseFloat(document.getElementById('arcWidth').value);
+            const showArcs = document.getElementById('showArcs').checked;
             const showPoints = document.getElementById('showPoints').checked;
             const showViaCity = document.getElementById('showViaCity').checked;
 
@@ -2562,7 +2995,7 @@
                 });
                 layers.push(heatmapLayer);
 
-            } else {
+            } else if (showArcs) {
                 // Separate routes with OSRM paths from those without
                 const routesWithPaths = filteredRoutes.filter(r => r.path && r.path.length > 0);
                 const routesWithoutPaths = filteredRoutes.filter(r => !r.path || r.path.length === 0);
@@ -2802,16 +3235,17 @@
                     }
                 });
                 layers.push(arcLayer);
+            }
 
                 // Points layer - icons for source (▲) and destination (▼)
-                if (showPoints) {
+            // Moved outside of showArcs block so points can display independently
+            if (showPoints && currentDataSource !== 'heatmap') {
                     const sourcePointsMap = new Map();
                     const destPointsMap = new Map();
                     
                     // Collect all unique points BY COORDINATES (not by name)
                     filteredRoutes.forEach(r => {
                         if (r.source && r.source.coordinates) {
-                            // Use coordinates as key (rounded to 3 decimals ≈ 111m precision)
                             const coords = r.source.coordinates;
                             const key = `${coords[0].toFixed(3)}_${coords[1].toFixed(3)}`;
                             
@@ -2819,7 +3253,7 @@
                                 sourcePointsMap.set(key, {
                                     position: coords,
                                     type: 'source',
-                                    name: r.source.name,  // First encountered name
+                                name: r.source.name,
                                     country: r.source.country,
                                     is_urban: r.source.is_urban,
                                     routes: []
@@ -2828,7 +3262,6 @@
                             sourcePointsMap.get(key).routes.push(r);
                         }
                         if (r.destination && r.destination.coordinates) {
-                            // Use coordinates as key
                             const coords = r.destination.coordinates;
                             const key = `${coords[0].toFixed(3)}_${coords[1].toFixed(3)}`;
                             
@@ -2836,7 +3269,7 @@
                                 destPointsMap.set(key, {
                                     position: coords,
                                     type: 'destination',
-                                    name: r.destination.name,  // First encountered name
+                                name: r.destination.name,
                                     country: r.destination.country,
                                     is_urban: r.destination.is_urban,
                                     routes: []
@@ -2855,20 +3288,17 @@
                         triangle_down: {x: 0, y: 0, width: 128, height: 128, mask: true}
                     };
 
-                    // Source icons layer (▲ rendered first, appears below)
+                // Source icons layer (▲)
                     const sourceLayer = new IconLayer({
-                        id: 'source-icons-layer',
+                    id: 'source-icons-layer-independent',
                         data: sourcePoints,
                         getPosition: d => d.position,
                         getIcon: d => 'triangle_up',
                         getColor: d => {
-                            // Check if this point should be highlighted
                             let isHighlighted = true;
                             
-                            // Priority 1: Point selection (compare by coordinates)
                             if (selectedPoint) {
                                 if (selectedPoint.type === 'source') {
-                                    // Highlight this source point if it matches selected coordinates
                                     const pointCoords = d.position;
                                     isHighlighted = (
                                         pointCoords[0].toFixed(3) === selectedPoint.position[0].toFixed(3) &&
@@ -2879,7 +3309,6 @@
                                                srcCoords[1].toFixed(3) === selectedPoint.position[1].toFixed(3);
                                     }));
                                 } else if (selectedPoint.type === 'destination') {
-                                    // Highlight source points that have routes to selected destination coordinates
                                     isHighlighted = d.routes && d.routes.some(r => {
                                         const destCoords = r.destination.coordinates;
                                         return destCoords[0].toFixed(3) === selectedPoint.position[0].toFixed(3) &&
@@ -2887,14 +3316,12 @@
                                     });
                                 }
                             }
-                            // Priority 2: Route selection
                             else if (selectedRoute) {
                                 isHighlighted = d.routes && d.routes.some(r => 
                                     r.source.name === selectedRoute.source.name && 
                                     r.destination.name === selectedRoute.destination.name
                                 );
                             }
-                            // Priority 3: Hover
                             else if (hoveredRoute) {
                                 isHighlighted = d.routes && d.routes.some(r => 
                                     r.source.name === hoveredRoute.source.name && 
@@ -2902,20 +3329,18 @@
                                 );
                             }
                             
-                            // Color based on mode
                             let color;
                             if (colorMode === 'rural_urban') {
                                 color = getLocationColor(d.is_urban);
                             } else if (colorMode === 'source_destination') {
-                                color = getPointTypeColor(true); // true = source
+                            color = getPointTypeColor(true);
                             } else {
-                                // International mode: use source/dest color scheme
-                                color = getPointTypeColor(true); // true = source
+                            color = getPointTypeColor(true);
                             }
                             const alpha = isHighlighted ? 200 : 5;
                             return [color[0], color[1], color[2], alpha];
                         },
-                        getSize: 22, // Unified size for hexagon effect
+                    getSize: 22,
                         sizeMinPixels: 7,
                         sizeMaxPixels: 30,
                         iconAtlas: 'data:image/svg+xml;base64,' + btoa(`
@@ -2933,20 +3358,17 @@
                     });
                     layers.push(sourceLayer);
 
-                    // Destination icons layer (▼ rendered second, appears on top, same size for hexagon)
+                // Destination icons layer (▼)
                     const destLayer = new IconLayer({
-                        id: 'dest-icons-layer',
+                    id: 'dest-icons-layer-independent',
                         data: destPoints,
                         getPosition: d => d.position,
                         getIcon: d => 'triangle_down',
                         getColor: d => {
-                            // Check if this point should be highlighted
                             let isHighlighted = true;
                             
-                            // Priority 1: Point selection (compare by coordinates)
                             if (selectedPoint) {
                                 if (selectedPoint.type === 'destination') {
-                                    // Highlight this destination point if it matches selected coordinates
                                     const pointCoords = d.position;
                                     isHighlighted = (
                                         pointCoords[0].toFixed(3) === selectedPoint.position[0].toFixed(3) &&
@@ -2957,7 +3379,6 @@
                                                destCoords[1].toFixed(3) === selectedPoint.position[1].toFixed(3);
                                     }));
                                 } else if (selectedPoint.type === 'source') {
-                                    // Highlight destination points that receive routes from selected source coordinates
                                     isHighlighted = d.routes && d.routes.some(r => {
                                         const srcCoords = r.source.coordinates;
                                         return srcCoords[0].toFixed(3) === selectedPoint.position[0].toFixed(3) &&
@@ -2965,14 +3386,12 @@
                                     });
                                 }
                             }
-                            // Priority 2: Route selection
                             else if (selectedRoute) {
                                 isHighlighted = d.routes && d.routes.some(r => 
                                     r.source.name === selectedRoute.source.name && 
                                     r.destination.name === selectedRoute.destination.name
                                 );
                             }
-                            // Priority 3: Hover
                             else if (hoveredRoute) {
                                 isHighlighted = d.routes && d.routes.some(r => 
                                     r.source.name === hoveredRoute.source.name && 
@@ -2980,20 +3399,18 @@
                                 );
                             }
                             
-                            // Color based on mode
                             let color;
                             if (colorMode === 'rural_urban') {
                                 color = getLocationColor(d.is_urban);
                             } else if (colorMode === 'source_destination') {
-                                color = getPointTypeColor(false); // false = destination
+                            color = getPointTypeColor(false);
                             } else {
-                                // International mode: use source/dest color scheme
-                                color = getPointTypeColor(false); // false = destination
+                            color = getPointTypeColor(false);
                             }
                             const alpha = isHighlighted ? 200 : 5;
                             return [color[0], color[1], color[2], alpha];
                         },
-                        getSize: 22, // Same size as source for perfect hexagon
+                    getSize: 22,
                         sizeMinPixels: 7,
                         sizeMaxPixels: 30,
                         iconAtlas: 'data:image/svg+xml;base64,' + btoa(`
@@ -3012,8 +3429,8 @@
                     layers.push(destLayer);
                 }
 
-                // Via city visualization (elevated spheres + vertical lines)
-                if (showViaCity) {
+            // Via city visualization - moved outside showArcs so it can display independently
+            if (showViaCity && currentDataSource !== 'heatmap') {
                     // Extract unique via cities from filtered routes
                     const viaCityMap = new Map();
                     filteredRoutes.forEach(r => {
@@ -3033,21 +3450,21 @@
 
                     // City color mapping
                     const cityColors = {
-                        'Bamako': [255, 165, 0],      // Orange
-                        'Tamale': [46, 204, 113],     // Green
-                        'Ouagadougou': [52, 152, 219], // Blue
-                        'Bamenda': [155, 89, 182]      // Purple
+                    'Bamako': [255, 165, 0],
+                    'Tamale': [46, 204, 113],
+                    'Ouagadougou': [52, 152, 219],
+                    'Bamenda': [155, 89, 182]
                     };
 
                     // Elevated sphere layer for via cities
                     const viaCitySphereLayer = new deck.ScatterplotLayer({
-                        id: 'via-city-spheres',
+                    id: 'via-city-spheres-independent',
                         data: viaCityPoints,
-                        getPosition: d => [...d.coordinates, 500], // Elevated 500m
-                        getRadius: 25000, // Larger than source/dest points
+                    getPosition: d => [...d.coordinates, 500],
+                    getRadius: 25000,
                         getFillColor: d => {
                             const color = cityColors[d.name] || [255, 165, 0];
-                            return [...color, 200]; // Semi-transparent
+                        return [...color, 200];
                         },
                         stroked: true,
                         getLineColor: d => {
@@ -3062,19 +3479,18 @@
 
                     // Vertical line layer from sphere to ground
                     const viaCityLineLayer = new deck.LineLayer({
-                        id: 'via-city-lines',
+                    id: 'via-city-lines-independent',
                         data: viaCityPoints,
-                        getSourcePosition: d => [...d.coordinates, 500], // Top (sphere)
-                        getTargetPosition: d => [...d.coordinates, 0],   // Ground
+                    getSourcePosition: d => [...d.coordinates, 500],
+                    getTargetPosition: d => [...d.coordinates, 0],
                         getColor: d => {
                             const color = cityColors[d.name] || [255, 165, 0];
-                            return [...color, 200]; // More opaque
+                        return [...color, 200];
                         },
-                        getWidth: 5, // Thicker line
+                    getWidth: 5,
                         widthMinPixels: 3
                     });
                     layers.push(viaCityLineLayer);
-                }
             }
 
             deckgl.setProps({ layers });
@@ -3253,25 +3669,6 @@
         }
 
         // ========== New Interactive Filter Functions ==========
-        
-        function toggleFilterMode(mode) {
-            const interactiveMode = document.getElementById('interactiveMode');
-            const traditionalMode = document.getElementById('traditionalMode');
-            const buttons = document.querySelectorAll('.mode-btn');
-            
-            buttons.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            if (mode === 'interactive') {
-                interactiveMode.style.display = 'block';
-                traditionalMode.style.display = 'none';
-            } else {
-                interactiveMode.style.display = 'none';
-                traditionalMode.style.display = 'block';
-                // Re-attach traditional event listeners
-                setupTraditionalListeners();
-            }
-        }
 
         function selectColorMode(element, mode) {
             // Update visual selection
@@ -3283,49 +3680,37 @@
             switchColorMode(mode);
         }
 
-        // 统计图表选择函数
+        // 统计图表选择函数 (Multi-select toggle)
         function selectRuralUrbanStat(element, type) {
-            // Handle old stat bar interface if element is provided
-            if (element && element.parentElement) {
-            const bars = element.parentElement.querySelectorAll('.stat-bar');
-            bars.forEach(bar => bar.classList.remove('active'));
-            element.classList.add('active');
+            // Toggle multi-select
+            const index = selectedFilters.ruralUrban.indexOf(type);
+            if (index > -1) {
+                selectedFilters.ruralUrban.splice(index, 1);
+            } else {
+                selectedFilters.ruralUrban.push(type);
             }
-            
-            // Sync with hidden select
-            const select = document.getElementById('ruralUrbanFilter');
-            if (select) select.value = type;
-            
             filterAndUpdate();
         }
 
         function selectTradeTypeStat(element, type) {
-            // Handle old stat bar interface if element is provided
-            if (element && element.parentElement) {
-            const bars = element.parentElement.querySelectorAll('.stat-bar');
-            bars.forEach(bar => bar.classList.remove('active'));
-            element.classList.add('active');
+            // Toggle multi-select
+            const index = selectedFilters.tradeTypes.indexOf(type);
+            if (index > -1) {
+                selectedFilters.tradeTypes.splice(index, 1);
+            } else {
+                selectedFilters.tradeTypes.push(type);
             }
-            
-            // Sync with hidden select
-            const select = document.getElementById('tradeTypeFilter');
-            if (select) select.value = type;
-            
             filterAndUpdate();
         }
 
         function selectYearStat(element, year) {
-            // Handle old stat bar interface if element is provided
-            if (element && element.parentElement) {
-            const bars = element.parentElement.querySelectorAll('.stat-bar');
-            bars.forEach(bar => bar.classList.remove('active'));
-            element.classList.add('active');
+            // Toggle multi-select
+            const index = selectedFilters.years.indexOf(year);
+            if (index > -1) {
+                selectedFilters.years.splice(index, 1);
+            } else {
+                selectedFilters.years.push(year);
             }
-            
-            // Sync with hidden select
-            const select = document.getElementById('yearFilter');
-            if (select) select.value = year;
-            
             filterAndUpdate();
         }
 
@@ -3334,139 +3719,142 @@
             bars.forEach(bar => bar.classList.remove('active'));
             element.classList.add('active');
             
-            // Sync with hidden select
-            const select = document.getElementById('routeFilter');
-            if (select) select.value = filter;
-            
             switchDataSource(filter);
-        }
-
-        // 传统条形图选择函数
-        function selectRuralUrban(element, type) {
-            const items = element.parentElement.querySelectorAll('.filter-bar-item');
-            items.forEach(item => item.classList.remove('active'));
-            element.classList.add('active');
-            
-            // Sync with hidden select (for compatibility)
-            const select = document.getElementById('ruralUrbanFilter');
-            if (select) select.value = type;
-            
-            filterAndUpdate();
-        }
-
-        function selectTradeType(element, type) {
-            const items = element.parentElement.querySelectorAll('.filter-bar-item');
-            items.forEach(item => item.classList.remove('active'));
-            element.classList.add('active');
-            
-            // Sync with hidden select
-            const select = document.getElementById('tradeTypeFilter');
-            if (select) select.value = type;
-            
-            filterAndUpdate();
-        }
-
-        function selectYear(element, year) {
-            const buttons = element.parentElement.querySelectorAll('.year-button');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            element.classList.add('active');
-            
-            // Sync with hidden select
-            const select = document.getElementById('yearFilter');
-            if (select) select.value = year;
-            
-            filterAndUpdate();
         }
 
         function selectCommodity(element, commodity) {
+            // Toggle multi-select (except 'all')
+            if (commodity === 'all') {
+                // Clear all selections and select 'all'
+                selectedFilters.commodities = [];
             const cards = element.parentElement.querySelectorAll('.commodity-card');
             cards.forEach(card => card.classList.remove('active'));
             element.classList.add('active');
-            
-            // Sync with hidden select
-            const select = document.getElementById('commodityFilter');
-            if (select) select.value = commodity;
-            
-            switchToCommodity(commodity);
-        }
-
-        function selectTransport(element, transport) {
-            const items = element.parentElement.querySelectorAll('.filter-bar-item');
-            items.forEach(item => item.classList.remove('active'));
+            } else {
+                // Toggle this commodity
+                const index = selectedFilters.commodities.indexOf(commodity);
+                if (index > -1) {
+                    // Deselect
+                    selectedFilters.commodities.splice(index, 1);
+                    element.classList.remove('active');
+                    
+                    // If no commodities selected, select 'all'
+                    if (selectedFilters.commodities.length === 0) {
+                        const allCard = Array.from(element.parentElement.querySelectorAll('.commodity-card'))
+                            .find(card => card.querySelector('.commodity-name')?.textContent === 'All');
+                        if (allCard) allCard.classList.add('active');
+                    }
+                } else {
+                    // Select
+                    selectedFilters.commodities.push(commodity);
             element.classList.add('active');
             
-            // Sync with hidden select
-            const select = document.getElementById('transportFilter');
-            if (select) select.value = transport;
+                    // Deselect 'all' if it was selected
+                    const allCard = Array.from(element.parentElement.querySelectorAll('.commodity-card'))
+                        .find(card => card.querySelector('.commodity-name')?.textContent === 'All');
+                    if (allCard) allCard.classList.remove('active');
+                }
+            }
             
             filterAndUpdate();
         }
 
-        function selectRouteFilter(element, filter) {
+        function selectTransport(element, transport) {
+            // Toggle multi-select (except 'all')
+            if (transport === 'all') {
+                // Clear all selections and select 'all'
+                selectedFilters.transports = [];
             const items = element.parentElement.querySelectorAll('.filter-bar-item');
             items.forEach(item => item.classList.remove('active'));
             element.classList.add('active');
+            } else {
+                // Toggle this transport
+                const index = selectedFilters.transports.indexOf(transport);
+                if (index > -1) {
+                    // Deselect
+                    selectedFilters.transports.splice(index, 1);
+                    element.classList.remove('active');
+                    
+                    // If no transports selected, select 'all'
+                    if (selectedFilters.transports.length === 0) {
+                        const allItem = Array.from(element.parentElement.querySelectorAll('.filter-bar-item'))
+                            .find(item => item.querySelector('.filter-bar-label')?.textContent === 'All Modes');
+                        if (allItem) allItem.classList.add('active');
+                    }
+                } else {
+                    // Select
+                    selectedFilters.transports.push(transport);
+            element.classList.add('active');
             
-            // Sync with hidden select
-            const select = document.getElementById('routeFilter');
-            if (select) select.value = filter;
+                    // Deselect 'all' if it was selected
+                    const allItem = Array.from(element.parentElement.querySelectorAll('.filter-bar-item'))
+                        .find(item => item.querySelector('.filter-bar-label')?.textContent === 'All Modes');
+                    if (allItem) allItem.classList.remove('active');
+                }
+            }
             
-            switchDataSource(filter);
+            filterAndUpdate();
         }
 
-        // ========== Original Event Listeners ==========
-
-        function setupTraditionalListeners() {
-            // Color mode switch
-            const colorModeSelect = document.getElementById('colorModeSelect');
-            if (colorModeSelect) {
-                colorModeSelect.addEventListener('change', function() {
-                switchColorMode(this.value);
-            });
+        function selectViaCity(element, viaCity) {
+            // Toggle multi-select (except 'all')
+            if (viaCity === 'all') {
+                // Clear all selections and select 'all'
+                selectedFilters.viaCities = [];
+            const items = element.parentElement.querySelectorAll('.filter-bar-item');
+            items.forEach(item => item.classList.remove('active'));
+            element.classList.add('active');
+            } else {
+                // Toggle this via city
+                const index = selectedFilters.viaCities.indexOf(viaCity);
+                if (index > -1) {
+                    // Deselect
+                    selectedFilters.viaCities.splice(index, 1);
+                    element.classList.remove('active');
+                    
+                    // If no via cities selected, select 'all'
+                    if (selectedFilters.viaCities.length === 0) {
+                        const allItem = Array.from(element.parentElement.querySelectorAll('.filter-bar-item'))
+                            .find(item => item.querySelector('.filter-bar-label')?.textContent === 'All Routes');
+                        if (allItem) allItem.classList.add('active');
+                    }
+                } else {
+                    // Select
+                    selectedFilters.viaCities.push(viaCity);
+                    element.classList.add('active');
+                    
+                    // Deselect 'all' if it was selected
+                    const allItem = Array.from(element.parentElement.querySelectorAll('.filter-bar-item'))
+                        .find(item => item.querySelector('.filter-bar-label')?.textContent === 'All Routes');
+                    if (allItem) allItem.classList.remove('active');
+                }
             }
+            
+            filterAndUpdate();
+        }
 
-            // Route filter dropdown
-            const routeFilter = document.getElementById('routeFilter');
-            if (routeFilter) {
-                routeFilter.addEventListener('change', function() {
-                switchDataSource(this.value);
-            });
-            }
-
-            // Commodity filter
-            const commodityFilter = document.getElementById('commodityFilter');
-            if (commodityFilter) {
-                commodityFilter.addEventListener('change', function() {
-                switchToCommodity(this.value);
-            });
-            }
-
-            // Other filters
-            const yearFilter = document.getElementById('yearFilter');
-            if (yearFilter) {
-                yearFilter.addEventListener('change', filterAndUpdate);
-            }
-
-            const transportFilter = document.getElementById('transportFilter');
-            if (transportFilter) {
-                transportFilter.addEventListener('change', filterAndUpdate);
-            }
-
-            const tradeTypeFilter = document.getElementById('tradeTypeFilter');
-            if (tradeTypeFilter) {
-                tradeTypeFilter.addEventListener('change', filterAndUpdate);
-            }
-
-            const ruralUrbanFilter = document.getElementById('ruralUrbanFilter');
-            if (ruralUrbanFilter) {
-                ruralUrbanFilter.addEventListener('change', filterAndUpdate);
+        // ========== Control Panel Toggle ==========
+        
+        function toggleControlPanel() {
+            const panel = document.getElementById('control-panel');
+            const toggle = document.getElementById('panelToggle');
+            const icon = document.getElementById('toggleIcon');
+            
+            panel.classList.toggle('collapsed');
+            toggle.classList.toggle('collapsed');
+            
+            if (panel.classList.contains('collapsed')) {
+                icon.textContent = '▶'; // Point right when collapsed
+                toggle.setAttribute('data-tooltip', 'Show filters (F)');
+            } else {
+                icon.textContent = '◀'; // Point left when expanded
+                toggle.setAttribute('data-tooltip', 'Hide filters (F)');
             }
         }
+
+        // ========== Event Listeners ==========
 
         function setupEventListeners() {
-            // Set up traditional mode listeners (hidden by default)
-            setupTraditionalListeners();
-            
             // Arc width - real-time update
             document.getElementById('arcWidth').addEventListener('input', function() {
                 const value = parseFloat(this.value).toFixed(1);
@@ -3474,11 +3862,24 @@
                 updateVisualization();
             });
 
+            // Show arcs
+            document.getElementById('showArcs').addEventListener('change', updateVisualization);
+
             // Show points
             document.getElementById('showPoints').addEventListener('change', updateVisualization);
             
             // Show via city
             document.getElementById('showViaCity').addEventListener('change', updateVisualization);
+            
+            // Keyboard shortcut: Press 'F' to toggle control panel
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'f' || e.key === 'F') {
+                    // Only toggle if not typing in an input
+                    if (!e.target.matches('input, textarea, select')) {
+                        toggleControlPanel();
+                    }
+                }
+            });
         }
 
 
