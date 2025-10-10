@@ -206,7 +206,7 @@
             cursor: pointer;
         }
 
-        /* 极简交互图表 */
+        /* Minimalist interactive charts */
         .filter-chart {
             background: #f8f9fa;
             border: 1px solid #e9ecef;
@@ -286,7 +286,7 @@
             color: white;
         }
 
-        /* 年份时间轴 */
+        /* Year timeline */
         .year-timeline {
             display: flex;
             gap: 3px;
@@ -317,7 +317,7 @@
             border-color: #0056b3;
         }
 
-        /* 商品网格 */
+        /* Commodity grid */
         .commodity-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -367,7 +367,7 @@
             line-height: 1;
         }
 
-        /* 统计图表样式 */
+        /* Statistics chart styles */
         .stats-chart {
             display: flex;
             align-items: end;
@@ -415,7 +415,7 @@
             font-weight: 600;
         }
 
-        /* 横向堆叠条形图 */
+        /* Horizontal stacked bar chart */
         .stacked-bar-container {
             margin: 6px 0;
             width: 100%;
@@ -836,27 +836,7 @@
 
     <div class="control-panel" id="control-panel" style="display: none;">
         <h3>Filters</h3>
-            <!-- Color Mode -->
-            <div class="control-group">
-                <label>Color Mode</label>
-                <div class="filter-bars">
-                    <div class="filter-bar-item active color-mode-bar" data-mode="source_destination" onclick="selectColorMode(this, 'source_destination')">
-                        <span class="filter-bar-label">Source-Dest</span>
-                        <div class="bar-container"><div class="bar-fill"></div></div>
-                        <span class="bar-value">Default</span>
-                    </div>
-                    <div class="filter-bar-item color-mode-bar" data-mode="rural_urban" onclick="selectColorMode(this, 'rural_urban')">
-                        <span class="filter-bar-label">Rural-Urban</span>
-                        <div class="bar-container"><div class="bar-fill"></div></div>
-                        <span class="bar-value"></span>
-                    </div>
-                    <div class="filter-bar-item color-mode-bar" data-mode="international" onclick="selectColorMode(this, 'international')">
-                        <span class="filter-bar-label">Trade Type</span>
-                        <div class="bar-container"><div class="bar-fill"></div></div>
-                        <span class="bar-value"></span>
-                    </div>
-                </div>
-            </div>
+
 
             <!-- Rural-Urban Flow Pattern (always visible) -->
             <div class="control-group" id="ruralUrbanFilterGroup">
@@ -944,15 +924,31 @@
                 <div class="toggle-switch">
                     <input type="checkbox" id="showArcs" checked>
                     <span class="toggle-slider"></span>
-                </div>
-            </div>
+        </div>
+        </div>
 
             <div class="checkbox-group">
+                <label for="useRealPaths">🛣️ Show real paths (OSRM)</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="useRealPaths" checked>
+                    <span class="toggle-slider"></span>
+        </div>
+        </div>
+
+            <div class="checkbox-group">
+                <label for="showFlowAnimation">🌊 Flow animation</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="showFlowAnimation" checked>
+                    <span class="toggle-slider"></span>
+        </div>
+        </div>
+
+        <div class="checkbox-group">
                 <label for="showPoints">📍 Location points</label>
                 <div class="toggle-switch">
-            <input type="checkbox" id="showPoints" checked>
+            <input type="checkbox" id="showPoints">
                     <span class="toggle-slider"></span>
-                </div>
+        </div>
         </div>
 
         <div class="checkbox-group">
@@ -970,7 +966,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="totalFlows">-</div>
-                <div class="stat-label">Quantity</div>
+                <div class="stat-label">Quantity (kg)</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="intlFlows">-</div>
@@ -979,6 +975,28 @@
             <div class="stat-card">
                 <div class="stat-value" id="avgDistance">-</div>
                 <div class="stat-label" id="distanceLabel">Avg Distance</div>
+            </div>
+        </div>
+
+        <!-- Color Mode -->
+        <div class="control-group" style="margin-top: 20px;">
+            <label>Color Mode</label>
+            <div class="filter-bars">
+                <div class="filter-bar-item active color-mode-bar" data-mode="source_destination" onclick="selectColorMode(this, 'source_destination')">
+                    <span class="filter-bar-label">Source-Dest</span>
+                    <div class="bar-container"><div class="bar-fill"></div></div>
+                    <span class="bar-value">Default</span>
+                </div>
+                <div class="filter-bar-item color-mode-bar" data-mode="rural_urban" onclick="selectColorMode(this, 'rural_urban')">
+                    <span class="filter-bar-label">Rural-Urban</span>
+                    <div class="bar-container"><div class="bar-fill"></div></div>
+                    <span class="bar-value"></span>
+                </div>
+                <div class="filter-bar-item color-mode-bar" data-mode="international" onclick="selectColorMode(this, 'international')">
+                    <span class="filter-bar-label">Trade Type</span>
+                    <div class="bar-container"><div class="bar-fill"></div></div>
+                    <span class="bar-value"></span>
+                </div>
             </div>
         </div>
 
@@ -1006,11 +1024,11 @@
             <div class="legend-title">Flow Types (Arc Color)</div>
             <div class="legend-item">
                 <div class="legend-line" style="background: #e53e3e;"></div>
-                <span>🌐 International (6.9%)</span>
+                <span>🌐 International</span>
             </div>
             <div class="legend-item">
                 <div class="legend-line" style="background: #3182ce;"></div>
-                <span>🏠 Domestic (93.1%)</span>
+                <span>🏠 Domestic</span>
             </div>
             <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #edf2f7;">
                 <div class="legend-title" style="margin-bottom: 8px;">Point Direction</div>
@@ -1042,7 +1060,7 @@
 
 
     <script>
-        const {DeckGL, ArcLayer, ScatterplotLayer, HeatmapLayer, IconLayer, PathLayer} = deck;
+        const {DeckGL, ArcLayer, ScatterplotLayer, HeatmapLayer, IconLayer, PathLayer, TripsLayer} = deck;
 
         let allDataByYear = null; // New hierarchical data: year → route_id → route data
         let allRoutesFlat = []; // Flattened array of all routes for compatibility
@@ -1050,6 +1068,7 @@
         let filteredRoutes = [];
         let deckgl = null;
         let colorMode = 'source_destination'; // Color mode: 'source_destination', 'rural_urban', or 'international'
+        let animationProgress = 0; // For flow animation (0-1)
         
         // Global statistics for legend (all available options without any filters)
         let globalStats = {
@@ -1063,7 +1082,7 @@
         
 
         // New hierarchical data file - organized by year
-        const DATA_FILE = 'food_flows_by_year.json';
+        const DATA_FILE = 'food_flows_by_year_round1.json';
 
         // Global commodity mapping (lowercase key -> Exact data name from JSON)
         const COMMODITY_MAP = {
@@ -1094,7 +1113,7 @@
             'okra': 'Okra',
             'cassava': 'Cassava',
             'orange': 'Orange',
-            'sweet_potato': 'Sweet potato',  // 注意：小写p
+            'sweet_potato': 'Sweet potato',  // Note: lowercase p
             'wheat_flour': 'Wheat flour',
             'wheat': 'Wheat',
             'sorghum': 'Sorghum',
@@ -1105,7 +1124,7 @@
             'zucchini': 'Zucchini',
             'pineapple': 'Pineapple',
             'spring_onion': 'Spring onion',
-            'guinea_fowl': 'Guinew fowl',  // 注意：数据中是Guinew，不是Guinea
+            'guinea_fowl': 'Guinew fowl',  // Note: data has "Guinew", not "Guinea"
             'leeks': 'Leeks',
             'sweet_pepper': 'Sweet pepper',
             'ginger': 'Ginger',
@@ -1247,7 +1266,7 @@
             });
             
             // Update label with count
-            document.getElementById('commodityLabel').textContent = `Commodities (${commodityCounts.size} types)`;
+            document.getElementById('commodityLabel').textContent = `Commodities (${commodityCounts.size} types, in kg)`;
             document.getElementById('transportLabel').textContent = `Transport (${transportCounts.size} modes)`;
             const viaCityLabel = document.getElementById('viaCityLabel');
             if (viaCityLabel) {
@@ -1280,7 +1299,7 @@
             allCard.onclick = function() { selectCommodity(this, 'all'); };
             allCard.innerHTML = `
                 <div class="commodity-name">All</div>
-                <div class="commodity-count">${formatQuantity(totalFlows)}</div>
+                <div class="commodity-count">${formatQuantity(totalFlows)} kg</div>
             `;
             grid.appendChild(allCard);
             
@@ -1313,7 +1332,7 @@
                 card.onclick = function() { selectCommodity(this, commodityKey); };
                 card.innerHTML = `
                     <div class="commodity-name">${commodity}</div>
-                    <div class="commodity-count">${formatQuantity(count)}</div>
+                    <div class="commodity-count">${formatQuantity(count)} kg</div>
                     <div class="commodity-bar" style="width: ${intensity}%; height: 2px; background: #6c757d; margin-top: 3px; border-radius: 1px;"></div>
                 `;
                 grid.appendChild(card);
@@ -1414,6 +1433,15 @@
                 updateStats();  // Update statistics on initial load
                 updateVisualization();
                 
+                // Force a second render after initialization to ensure deck.gl properly displays layers
+                // This resolves an initial rendering race condition
+                setTimeout(() => {
+                    updateVisualization();
+                }, 100);
+                
+                // Start flow particle animation
+                startFlowAnimation();
+                
                 // Generate dynamic filter options from data
                 generateFilterOptionsFromData();
                 
@@ -1449,7 +1477,9 @@
                         quantity: routeData.quantity,
                         is_international: routeData.is_international,
                         flow_type: routeData.flow_type,
-                        // path: routeData.path,  // Will be added later with OSRM
+                        path: routeData.path || null,  // Load OSRM path if available
+                        distance_km: routeData.distance_km || null,
+                        duration_hours: routeData.duration_hours || null,
                         
                         // Convert commodity structure
                         commodities: {},
@@ -1551,9 +1581,12 @@
                     });
                     
                     // Check if this route already exists (same source/dest/via_city but different year)
+                    // Match by coordinates (rounded to 1 decimal = 11km) to match Python aggregation
                     const existing = allRoutesFlat.find(r => 
-                        r.source.name === route.source.name &&
-                        r.destination.name === route.destination.name &&
+                        r.source.coordinates[0].toFixed(1) === route.source.coordinates[0].toFixed(1) &&
+                        r.source.coordinates[1].toFixed(1) === route.source.coordinates[1].toFixed(1) &&
+                        r.destination.coordinates[0].toFixed(1) === route.destination.coordinates[0].toFixed(1) &&
+                        r.destination.coordinates[1].toFixed(1) === route.destination.coordinates[1].toFixed(1) &&
                         (r.via_city?.name || null) === (route.via_city?.name || null)
                     );
                     
@@ -1563,6 +1596,50 @@
                         existing.quantity += route.quantity;
                         existing.years.push(parseInt(year));
                         existing.years = [...new Set(existing.years)].sort();
+                        
+                        // Keep OSRM path data (prefer non-null path)
+                        if (route.path && route.path.length > 0) {
+                            existing.path = route.path;
+                            existing.distance_km = route.distance_km;
+                            existing.duration_hours = route.duration_hours;
+                        }
+                        
+                        // Update names based on quantity (use most frequent = highest quantity year)
+                        // Track name candidates with their weights
+                        if (!existing._nameWeights) {
+                            existing._nameWeights = {
+                                source: new Map([[existing.source.name, existing.quantity]]),
+                                destination: new Map([[existing.destination.name, existing.quantity]])
+                            };
+                        }
+                        
+                        // Add this year's names with their quantity as weight
+                        const srcWeight = existing._nameWeights.source.get(route.source.name) || 0;
+                        existing._nameWeights.source.set(route.source.name, srcWeight + route.quantity);
+                        
+                        const destWeight = existing._nameWeights.destination.get(route.destination.name) || 0;
+                        existing._nameWeights.destination.set(route.destination.name, destWeight + route.quantity);
+                        
+                        // Select name with highest weight (mode)
+                        let maxSrcWeight = 0;
+                        let bestSrcName = existing.source.name;
+                        existing._nameWeights.source.forEach((weight, name) => {
+                            if (weight > maxSrcWeight) {
+                                maxSrcWeight = weight;
+                                bestSrcName = name;
+                            }
+                        });
+                        existing.source.name = bestSrcName;
+                        
+                        let maxDestWeight = 0;
+                        let bestDestName = existing.destination.name;
+                        existing._nameWeights.destination.forEach((weight, name) => {
+                            if (weight > maxDestWeight) {
+                                maxDestWeight = weight;
+                                bestDestName = name;
+                            }
+                        });
+                        existing.destination.name = bestDestName;
                         
                         // Merge commodities
                         Object.entries(route.commodities).forEach(([comm, qty]) => {
@@ -1614,7 +1691,15 @@
                 });
             });
             
+            // Count routes with OSRM paths
+            const routesWithPaths = allRoutesFlat.filter(r => r.path && r.path.length > 0).length;
+            const totalPathPoints = allRoutesFlat.reduce((sum, r) => sum + (r.path ? r.path.length : 0), 0);
+            
             console.log(`Loaded ${allRoutesFlat.length} unique routes from ${Object.keys(allDataByYear).length} years`);
+            console.log(`📍 OSRM Paths: ${routesWithPaths} routes have real road paths (${(routesWithPaths/allRoutesFlat.length*100).toFixed(1)}%)`);
+            if (routesWithPaths > 0) {
+                console.log(`   Average ${Math.round(totalPathPoints/routesWithPaths)} points per path`);
+            }
             return allRoutesFlat;
         }
 
@@ -1693,6 +1778,14 @@
         function initDeckGL() {
             deckgl = new DeckGL({
                 container: 'map',
+                // Map style options:
+                // 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json' - Dark with labels (current)
+                // 'https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json' - Dark no labels
+                // 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json' - Light minimal
+                // 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json' - Light colored
+                // Mapbox styles (requires token):
+                // 'mapbox://styles/mapbox/dark-v10' - Mapbox dark (fine-tuned)
+                // 'mapbox://styles/mapbox/light-v10' - Mapbox light
                 mapStyle: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
                 initialViewState: {
                     longitude: 3,
@@ -1702,7 +1795,21 @@
                     bearing: 0
                 },
                 controller: true,
-                layers: []
+                layers: [],
+                onClick: (info) => {
+                    // Global click handler - only handles clicks on empty space
+                    // Layer objects have their own onClick handlers
+                    if (!info.object) {
+                        // Clicked on empty space (no layer object)
+                        if (selectedRoute || selectedPoint || hoveredRoute) {
+                            selectedRoute = null;
+                            selectedPoint = null;
+                            hoveredRoute = null;  // Also clear hover state
+                            updateVisualization();
+                        }
+                    }
+                    // If info.object exists, the layer's onClick (handleClick) will be called
+                }
             });
         }
 
@@ -2972,6 +3079,147 @@
             }
         }
 
+        /**
+         * Start flow particle animation
+         */
+        let lastAnimationTime = 0;
+        let animationFrameId = null;
+        function startFlowAnimation() {
+            function animate(timestamp) {
+                // Check if animation is disabled
+                const showFlowAnimation = document.getElementById('showFlowAnimation')?.checked;
+                if (!showFlowAnimation) {
+                    animationFrameId = requestAnimationFrame(animate);
+                    return; // Pause updates when animation is off, but keep loop running
+                }
+                
+                // Control update frequency to avoid excessive rendering
+                if (timestamp - lastAnimationTime < 40) { // ~25 FPS
+                    animationFrameId = requestAnimationFrame(animate);
+                    return;
+                }
+                lastAnimationTime = timestamp;
+                
+                animationProgress = (animationProgress + 0.008) % 1; // 0-1 loop, moderate speed
+                if (deckgl) {
+                    updateVisualization();
+                }
+                animationFrameId = requestAnimationFrame(animate);
+            }
+            animationFrameId = requestAnimationFrame(animate);
+        }
+
+        /**
+         * Generate flow particles for paths
+         * Optimization: Only generate particles for high-quantity routes to ensure performance
+         * Synchronization: Filter particles based on selection/hover state
+         */
+        function generateFlowParticles(routes) {
+            const particles = [];
+            
+            // Take top 500 routes (sorted by quantity) for performance
+            let topRoutes = routes
+                .filter(r => r.path && r.path.length >= 2)
+                .sort((a, b) => {
+                    const qtyA = a._displayData ? a._displayData.quantity : a.quantity || 0;
+                    const qtyB = b._displayData ? b._displayData.quantity : b.quantity || 0;
+                    return qtyB - qtyA;
+                })
+                .slice(0, 500);
+            
+            // If selection/hover exists, only generate particles for matching routes
+            if (selectedRoute || selectedPoint || hoveredRoute) {
+                topRoutes = topRoutes.filter(route => {
+                    // Check if route should be highlighted (consistent with PathLayer logic)
+                    if (selectedPoint) {
+                        if (selectedPoint.type === 'source') {
+                            const srcCoords = route.source.coordinates;
+                            return (
+                                srcCoords[0].toFixed(3) === selectedPoint.position[0].toFixed(3) &&
+                                srcCoords[1].toFixed(3) === selectedPoint.position[1].toFixed(3)
+                            );
+                        } else if (selectedPoint.type === 'destination') {
+                            const destCoords = route.destination.coordinates;
+                            return (
+                                destCoords[0].toFixed(3) === selectedPoint.position[0].toFixed(3) &&
+                                destCoords[1].toFixed(3) === selectedPoint.position[1].toFixed(3)
+                            );
+                        }
+                    } else if (selectedRoute) {
+                        return (
+                            route.source.coordinates[0].toFixed(1) === selectedRoute.source.coordinates[0].toFixed(1) &&
+                            route.source.coordinates[1].toFixed(1) === selectedRoute.source.coordinates[1].toFixed(1) &&
+                            route.destination.coordinates[0].toFixed(1) === selectedRoute.destination.coordinates[0].toFixed(1) &&
+                            route.destination.coordinates[1].toFixed(1) === selectedRoute.destination.coordinates[1].toFixed(1) &&
+                            (route.via_city?.name || null) === (selectedRoute.via_city?.name || null)
+                        );
+                    } else if (hoveredRoute) {
+                        return (
+                            route.source.coordinates[0].toFixed(1) === hoveredRoute.source.coordinates[0].toFixed(1) &&
+                            route.source.coordinates[1].toFixed(1) === hoveredRoute.source.coordinates[1].toFixed(1) &&
+                            route.destination.coordinates[0].toFixed(1) === hoveredRoute.destination.coordinates[0].toFixed(1) &&
+                            route.destination.coordinates[1].toFixed(1) === hoveredRoute.destination.coordinates[1].toFixed(1) &&
+                            (route.via_city?.name || null) === (hoveredRoute.via_city?.name || null)
+                        );
+                    }
+                    return false;
+                });
+            }
+            
+            topRoutes.forEach(route => {
+                const quantity = route._displayData ? route._displayData.quantity : route.quantity || 0;
+                
+                // Number of particles based on flow quantity: higher flow = more particles
+                const numParticles = quantity > 100000 ? 3 : quantity > 50000 ? 2 : 1;
+                
+                for (let i = 0; i < numParticles; i++) {
+                    // Distribute particles evenly along path to create "density" effect
+                    const offset = (animationProgress + i / numParticles) % 1;
+                    const position = getPointOnPath(route.path, offset);
+                    
+                    if (position) {
+                        particles.push({
+                            position: position,
+                            route: route,
+                            quantity: quantity, // For size encoding
+                            color: colorMode === 'rural_urban' ? 
+                                getLocationColor(route.source.is_urban) :
+                                colorMode === 'source_destination' ?
+                                getPointTypeColor(true) :
+                                getFlowTypeColor(route)
+                        });
+                    }
+                }
+            });
+            
+            return particles;
+        }
+
+        /**
+         * Get point on path based on progress
+         */
+        function getPointOnPath(path, progress) {
+            if (!path || path.length < 2) return null;
+            
+            const totalLength = path.length - 1;
+            const targetIndex = progress * totalLength;
+            const baseIndex = Math.floor(targetIndex);
+            const fraction = targetIndex - baseIndex;
+            
+            if (baseIndex >= path.length - 1) {
+                return path[path.length - 1];
+            }
+            
+            const p1 = path[baseIndex];
+            const p2 = path[baseIndex + 1];
+            
+            // Linear interpolation
+            return [
+                p1[0] + (p2[0] - p1[0]) * fraction,
+                p1[1] + (p2[1] - p1[1]) * fraction
+            ];
+        }
+
         function updateVisualization() {
             if (!deckgl) return; // Ensure deckgl is initialized
             
@@ -2979,6 +3227,8 @@
             const showArcs = document.getElementById('showArcs').checked;
             const showPoints = document.getElementById('showPoints').checked;
             const showViaCity = document.getElementById('showViaCity').checked;
+            const useRealPaths = document.getElementById('useRealPaths').checked;
+            const showFlowAnimation = document.getElementById('showFlowAnimation').checked;
 
             const layers = [];
 
@@ -2997,8 +3247,17 @@
 
             } else if (showArcs) {
                 // Separate routes with OSRM paths from those without
-                const routesWithPaths = filteredRoutes.filter(r => r.path && r.path.length > 0);
-                const routesWithoutPaths = filteredRoutes.filter(r => !r.path || r.path.length === 0);
+                // ✈️ Plane routes always use arcs (straight lines in the sky)
+                // 🛣️ useRealPaths controls whether to show OSRM paths or arcs
+                const routesWithPaths = useRealPaths ? filteredRoutes.filter(r => 
+                    r.path && r.path.length > 0 && 
+                    r.main_transport !== 'Plane'  // Exclude plane routes from PathLayer
+                ) : [];  // If useRealPaths is off, don't use PathLayer
+                
+                const routesWithoutPaths = useRealPaths ? filteredRoutes.filter(r => 
+                    !r.path || r.path.length === 0 || 
+                    r.main_transport === 'Plane'  // Include plane routes in ArcLayer
+                ) : filteredRoutes;  // If useRealPaths is off, use ArcLayer for all
                 
                 // PathLayer for routes with OSRM paths (real road routing)
                 const pathLayer = new PathLayer({
@@ -3025,37 +3284,87 @@
                                 );
                             }
                         }
-                        // Priority 2: Route selection
+                        // Priority 2: Route selection (match by coordinates + via_city, same as merge logic)
                         else if (selectedRoute) {
-                            isHighlighted = (d.source.name === selectedRoute.source.name && 
-                                           d.destination.name === selectedRoute.destination.name);
+                            isHighlighted = (
+                                d.source.coordinates[0].toFixed(1) === selectedRoute.source.coordinates[0].toFixed(1) &&
+                                d.source.coordinates[1].toFixed(1) === selectedRoute.source.coordinates[1].toFixed(1) &&
+                                d.destination.coordinates[0].toFixed(1) === selectedRoute.destination.coordinates[0].toFixed(1) &&
+                                d.destination.coordinates[1].toFixed(1) === selectedRoute.destination.coordinates[1].toFixed(1) &&
+                                (d.via_city?.name || null) === (selectedRoute.via_city?.name || null)
+                            );
                         }
-                        // Priority 3: Hover
+                        // Priority 3: Hover (match by coordinates + via_city)
                         else if (hoveredRoute) {
-                            isHighlighted = (d.source.name === hoveredRoute.source.name && 
-                                           d.destination.name === hoveredRoute.destination.name);
+                            isHighlighted = (
+                                d.source.coordinates[0].toFixed(1) === hoveredRoute.source.coordinates[0].toFixed(1) &&
+                                d.source.coordinates[1].toFixed(1) === hoveredRoute.source.coordinates[1].toFixed(1) &&
+                                d.destination.coordinates[0].toFixed(1) === hoveredRoute.destination.coordinates[0].toFixed(1) &&
+                                d.destination.coordinates[1].toFixed(1) === hoveredRoute.destination.coordinates[1].toFixed(1) &&
+                                (d.via_city?.name || null) === (hoveredRoute.via_city?.name || null)
+                            );
                         }
                         
+                        // Get source and target colors (matching ArcLayer)
+                        let sourceColor, targetColor;
+                        
                         if (colorMode === 'rural_urban') {
-                            const color = getLocationColor(d.source.is_urban);
-                            const alpha = isHighlighted ? 200 : 30;
-                            return [color[0], color[1], color[2], alpha];
+                            sourceColor = getLocationColor(d.source.is_urban);
+                            targetColor = getLocationColor(d.destination.is_urban);
+                            // Increase contrast: very bright when selected, fully transparent when not
+                            const hasSelection = selectedRoute || selectedPoint || hoveredRoute;
+                            const sourceAlpha = isHighlighted ? 240 : (hasSelection ? 0 : 80);
+                            const targetAlpha = isHighlighted ? 150 : (hasSelection ? 0 : 40);
+                            
+                            // Create gradient array for each point in the path
+                            const pathLength = d.path.length;
+                            return d.path.map((point, index) => {
+                                const t = index / (pathLength - 1); // 0 to 1
+                                const alpha = sourceAlpha * (1 - t) + targetAlpha * t;
+                                const r = sourceColor[0] * (1 - t) + targetColor[0] * t;
+                                const g = sourceColor[1] * (1 - t) + targetColor[1] * t;
+                                const b = sourceColor[2] * (1 - t) + targetColor[2] * t;
+                                return [r, g, b, alpha];
+                            });
                         } else if (colorMode === 'source_destination') {
-                            const color = [100, 180, 255]; // Blue for paths
-                            const alpha = isHighlighted ? 200 : 40;
-                            return [color[0], color[1], color[2], alpha];
+                            sourceColor = getPointTypeColor(true);  // Green
+                            targetColor = getPointTypeColor(false); // Red
+                            const hasSelection = selectedRoute || selectedPoint || hoveredRoute;
+                            const sourceAlpha = isHighlighted ? 240 : (hasSelection ? 0 : 100);
+                            const targetAlpha = isHighlighted ? 160 : (hasSelection ? 0 : 60);
+                            
+                            const pathLength = d.path.length;
+                            return d.path.map((point, index) => {
+                                const t = index / (pathLength - 1);
+                                const alpha = sourceAlpha * (1 - t) + targetAlpha * t;
+                                const r = sourceColor[0] * (1 - t) + targetColor[0] * t;
+                                const g = sourceColor[1] * (1 - t) + targetColor[1] * t;
+                                const b = sourceColor[2] * (1 - t) + targetColor[2] * t;
+                                return [r, g, b, alpha];
+                            });
                         } else {
+                            // International mode - uniform color
                             const color = getFlowTypeColor(d);
-                            const alpha = isHighlighted ? 255 : 40;
+                            const hasSelection = selectedRoute || selectedPoint || hoveredRoute;
+                            const sourceAlpha = isHighlighted ? 255 : (hasSelection ? 0 : 120);
+                            const targetAlpha = isHighlighted ? 120 : (hasSelection ? 0 : 60);
+                            
+                            const pathLength = d.path.length;
+                            return d.path.map((point, index) => {
+                                const t = index / (pathLength - 1);
+                                const alpha = sourceAlpha * (1 - t) + targetAlpha * t;
                             return [color[0], color[1], color[2], alpha];
+                            });
                         }
                     },
                     getWidth: d => {
-                        // Use quantity instead of flows for width
-                        const quantity = d.quantity || d.flows || 1;
-                        const baseWidth = Math.sqrt(quantity) * 0.15;  // Reduced from 0.5 to 0.15
-                        let isHighlighted = false;
+                        // Read arcWidth directly from DOM for real-time updates
+                        const currentArcWidth = parseFloat(document.getElementById('arcWidth').value);
+                        const quantity = d._displayData ? (d._displayData.quantity || d._displayData.flows) : (d.quantity || d.flows || 1);
                         
+                        // Check if highlighted
+                        let isHighlighted = false;
+                        if (selectedPoint || selectedRoute || hoveredRoute) {
                         if (selectedPoint) {
                             if (selectedPoint.type === 'source') {
                                 const srcCoords = d.source.coordinates;
@@ -3071,31 +3380,70 @@
                                 );
                             }
                         } else if (selectedRoute) {
-                            isHighlighted = (d.source.name === selectedRoute.source.name && 
-                                           d.destination.name === selectedRoute.destination.name);
+                            isHighlighted = (
+                                d.source.coordinates[0].toFixed(1) === selectedRoute.source.coordinates[0].toFixed(1) &&
+                                d.source.coordinates[1].toFixed(1) === selectedRoute.source.coordinates[1].toFixed(1) &&
+                                d.destination.coordinates[0].toFixed(1) === selectedRoute.destination.coordinates[0].toFixed(1) &&
+                                d.destination.coordinates[1].toFixed(1) === selectedRoute.destination.coordinates[1].toFixed(1) &&
+                                (d.via_city?.name || null) === (selectedRoute.via_city?.name || null)
+                            );
                         } else if (hoveredRoute) {
-                            isHighlighted = (d.source.name === hoveredRoute.source.name && 
-                                           d.destination.name === hoveredRoute.destination.name);
+                            isHighlighted = (
+                                d.source.coordinates[0].toFixed(1) === hoveredRoute.source.coordinates[0].toFixed(1) &&
+                                d.source.coordinates[1].toFixed(1) === hoveredRoute.source.coordinates[1].toFixed(1) &&
+                                d.destination.coordinates[0].toFixed(1) === hoveredRoute.destination.coordinates[0].toFixed(1) &&
+                                d.destination.coordinates[1].toFixed(1) === hoveredRoute.destination.coordinates[1].toFixed(1) &&
+                                (d.via_city?.name || null) === (hoveredRoute.via_city?.name || null)
+                            );
+                            }
                         }
                         
+                        // Use square root function to make flow differences more visible
+                        const baseWidth = Math.sqrt(quantity / 1000) * currentArcWidth * 0.2;
                         return isHighlighted ? baseWidth * 3 : baseWidth;
                     },
-                    widthMinPixels: 0.5,
-                    widthMaxPixels: 10,
+                    widthScale: 1,
+                    widthUnits: 'pixels',
+                    widthMinPixels: 0.15,
+                    widthMaxPixels: 5,
                     pickable: true,
-                    onHover: info => {
-                        if (info.object && !selectedRoute && !selectedPoint) {
-                            hoveredRoute = info.object;
-                        } else if (!info.object) {
-                            hoveredRoute = null;
-                        }
-                    },
+                    onHover: handleHover,
+                    onClick: handleClick,
                     updateTriggers: {
-                        getColor: [hoveredRoute, selectedRoute, selectedPoint, colorMode],
-                        getWidth: [hoveredRoute, selectedRoute, selectedPoint]
+                        getColor: [colorMode, hoveredRoute, selectedRoute, selectedPoint],
+                        getWidth: [arcWidth, hoveredRoute, selectedRoute, selectedPoint]
                     }
                 });
                 layers.push(pathLayer);
+                
+                // Add flow particle layer (only when toggle is on)
+                if (showFlowAnimation) {
+                    const flowParticles = generateFlowParticles(routesWithPaths);
+                    const particleLayer = new ScatterplotLayer({
+                        id: 'flow-particles',
+                        data: flowParticles,
+                        getPosition: d => d.position,
+                        getFillColor: d => {
+                            const hasSelection = selectedRoute || selectedPoint || hoveredRoute;
+                            const alpha = hasSelection ? 180 : 255;
+                            return [...d.color, alpha];
+                        },
+                        getRadius: d => {
+                            // Particle size based on flow quantity: higher flow = larger particles
+                            const quantity = d.quantity || 1000;
+                            return Math.sqrt(quantity / 100); // Square root scaling
+                        },
+                        radiusMinPixels: 1.5,
+                        radiusMaxPixels: 6,
+                        pickable: false,
+                    updateTriggers: {
+                            getPosition: animationProgress,
+                            getFillColor: [colorMode, selectedRoute, selectedPoint, hoveredRoute],
+                            getRadius: [colorMode]
+                    }
+                });
+                    layers.push(particleLayer);
+                }
                 
                 // Arc layer for routes without OSRM paths (fallback to straight lines)
                 let arcData = routesWithoutPaths;
@@ -3149,28 +3497,41 @@
                                 );
                             }
                         }
-                        // Priority 2: Route selection
+                        // Priority 2: Route selection (match by coordinates + via_city)
                         else if (selectedRoute) {
-                            isHighlighted = (d.source.name === selectedRoute.source.name && 
-                                           d.destination.name === selectedRoute.destination.name);
+                            isHighlighted = (
+                                d.source.coordinates[0].toFixed(1) === selectedRoute.source.coordinates[0].toFixed(1) &&
+                                d.source.coordinates[1].toFixed(1) === selectedRoute.source.coordinates[1].toFixed(1) &&
+                                d.destination.coordinates[0].toFixed(1) === selectedRoute.destination.coordinates[0].toFixed(1) &&
+                                d.destination.coordinates[1].toFixed(1) === selectedRoute.destination.coordinates[1].toFixed(1) &&
+                                (d.via_city?.name || null) === (selectedRoute.via_city?.name || null)
+                            );
                         }
-                        // Priority 3: Hover
+                        // Priority 3: Hover (match by coordinates + via_city)
                         else if (hoveredRoute) {
-                            isHighlighted = (d.source.name === hoveredRoute.source.name && 
-                                           d.destination.name === hoveredRoute.destination.name);
+                            isHighlighted = (
+                                d.source.coordinates[0].toFixed(1) === hoveredRoute.source.coordinates[0].toFixed(1) &&
+                                d.source.coordinates[1].toFixed(1) === hoveredRoute.source.coordinates[1].toFixed(1) &&
+                                d.destination.coordinates[0].toFixed(1) === hoveredRoute.destination.coordinates[0].toFixed(1) &&
+                                d.destination.coordinates[1].toFixed(1) === hoveredRoute.destination.coordinates[1].toFixed(1) &&
+                                (d.via_city?.name || null) === (hoveredRoute.via_city?.name || null)
+                            );
                         }
+                        
+                        // Increase selection contrast
+                        const hasSelection = selectedRoute || selectedPoint || hoveredRoute;
                         
                         if (colorMode === 'rural_urban') {
                             const color = getLocationColor(d.source.is_urban);
-                            const alpha = isHighlighted ? 180 : 3;
+                            const alpha = isHighlighted ? 220 : (hasSelection ? 0 : 3);
                             return [color[0], color[1], color[2], alpha];
                         } else if (colorMode === 'source_destination') {
                             const color = getPointTypeColor(true);
-                            const alpha = isHighlighted ? 200 : 5;
+                            const alpha = isHighlighted ? 240 : (hasSelection ? 0 : 5);
                             return [color[0], color[1], color[2], alpha];
                         } else {
                             const color = getFlowTypeColor(d);
-                            const alpha = isHighlighted ? 255 : 5;
+                            const alpha = isHighlighted ? 255 : (hasSelection ? 0 : 5);
                             return [color[0], color[1], color[2], alpha];
                         }
                     },
@@ -3194,36 +3555,54 @@
                                 );
                             }
                         }
-                        // Priority 2: Route selection
+                        // Priority 2: Route selection (match by coordinates + via_city)
                         else if (selectedRoute) {
-                            isHighlighted = (d.source.name === selectedRoute.source.name && 
-                                           d.destination.name === selectedRoute.destination.name);
+                            isHighlighted = (
+                                d.source.coordinates[0].toFixed(1) === selectedRoute.source.coordinates[0].toFixed(1) &&
+                                d.source.coordinates[1].toFixed(1) === selectedRoute.source.coordinates[1].toFixed(1) &&
+                                d.destination.coordinates[0].toFixed(1) === selectedRoute.destination.coordinates[0].toFixed(1) &&
+                                d.destination.coordinates[1].toFixed(1) === selectedRoute.destination.coordinates[1].toFixed(1) &&
+                                (d.via_city?.name || null) === (selectedRoute.via_city?.name || null)
+                            );
                         }
-                        // Priority 3: Hover
+                        // Priority 3: Hover (match by coordinates + via_city)
                         else if (hoveredRoute) {
-                            isHighlighted = (d.source.name === hoveredRoute.source.name && 
-                                           d.destination.name === hoveredRoute.destination.name);
+                            isHighlighted = (
+                                d.source.coordinates[0].toFixed(1) === hoveredRoute.source.coordinates[0].toFixed(1) &&
+                                d.source.coordinates[1].toFixed(1) === hoveredRoute.source.coordinates[1].toFixed(1) &&
+                                d.destination.coordinates[0].toFixed(1) === hoveredRoute.destination.coordinates[0].toFixed(1) &&
+                                d.destination.coordinates[1].toFixed(1) === hoveredRoute.destination.coordinates[1].toFixed(1) &&
+                                (d.via_city?.name || null) === (hoveredRoute.via_city?.name || null)
+                            );
                         }
+                        
+                        // Increase selection contrast
+                        const hasSelection = selectedRoute || selectedPoint || hoveredRoute;
                         
                         if (colorMode === 'rural_urban') {
                             const color = getLocationColor(d.destination.is_urban);
-                            const alpha = isHighlighted ? 60 : 2;
+                            const alpha = isHighlighted ? 100 : (hasSelection ? 0 : 2);
                             return [color[0], color[1], color[2], alpha];
                         } else if (colorMode === 'source_destination') {
                             const color = getPointTypeColor(false);
-                            const alpha = isHighlighted ? 80 : 3;
+                            const alpha = isHighlighted ? 120 : (hasSelection ? 0 : 3);
                             return [color[0], color[1], color[2], alpha];
                         } else {
                             const color = getFlowTypeColor(d);
-                            const alpha = isHighlighted ? 60 : 3;
+                            const alpha = isHighlighted ? 100 : (hasSelection ? 0 : 3);
                             return [color[0], color[1], color[2], alpha];
                         }
                     },
                     getWidth: d => {
                         // Use precise quantity from _displayData if available
                         const quantity = d._displayData ? (d._displayData.quantity || d._displayData.flows) : (d.quantity || d.flows || 1);
-                        return Math.log(quantity + 1) * arcWidth * 0.6;  // Additional 0.6 multiplier to make lines thinner
+                        // Use square root function to make flow differences more visible (consistent with PathLayer)
+                        return Math.sqrt(quantity / 1000) * arcWidth * 0.2;
                     },
+                    widthScale: 1,
+                    widthUnits: 'pixels',
+                    widthMinPixels: 0.15,
+                    widthMaxPixels: 5,
                     pickable: true,
                     autoHighlight: false, // Disable auto-highlight, we handle it manually
                     onHover: handleHover,
@@ -3318,14 +3697,20 @@
                             }
                             else if (selectedRoute) {
                                 isHighlighted = d.routes && d.routes.some(r => 
-                                    r.source.name === selectedRoute.source.name && 
-                                    r.destination.name === selectedRoute.destination.name
+                                    r.source.coordinates[0].toFixed(1) === selectedRoute.source.coordinates[0].toFixed(1) &&
+                                    r.source.coordinates[1].toFixed(1) === selectedRoute.source.coordinates[1].toFixed(1) &&
+                                    r.destination.coordinates[0].toFixed(1) === selectedRoute.destination.coordinates[0].toFixed(1) &&
+                                    r.destination.coordinates[1].toFixed(1) === selectedRoute.destination.coordinates[1].toFixed(1) &&
+                                    (r.via_city?.name || null) === (selectedRoute.via_city?.name || null)
                                 );
                             }
                             else if (hoveredRoute) {
                                 isHighlighted = d.routes && d.routes.some(r => 
-                                    r.source.name === hoveredRoute.source.name && 
-                                    r.destination.name === hoveredRoute.destination.name
+                                    r.source.coordinates[0].toFixed(1) === hoveredRoute.source.coordinates[0].toFixed(1) &&
+                                    r.source.coordinates[1].toFixed(1) === hoveredRoute.source.coordinates[1].toFixed(1) &&
+                                    r.destination.coordinates[0].toFixed(1) === hoveredRoute.destination.coordinates[0].toFixed(1) &&
+                                    r.destination.coordinates[1].toFixed(1) === hoveredRoute.destination.coordinates[1].toFixed(1) &&
+                                    (r.via_city?.name || null) === (hoveredRoute.via_city?.name || null)
                                 );
                             }
                             
@@ -3340,9 +3725,9 @@
                             const alpha = isHighlighted ? 200 : 5;
                             return [color[0], color[1], color[2], alpha];
                         },
-                    getSize: 22,
-                        sizeMinPixels: 7,
-                        sizeMaxPixels: 30,
+                    getSize: 14,  // Reduced: 22→14
+                        sizeMinPixels: 3,  // Reduced: 7→3
+                        sizeMaxPixels: 16,  // Reduced: 30→16
                         iconAtlas: 'data:image/svg+xml;base64,' + btoa(`
                             <svg width="128" height="128" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M 64 28 L 102 88 L 26 88 Z" fill="white" stroke="rgba(0,0,0,0.3)" stroke-width="3"/>
@@ -3388,14 +3773,20 @@
                             }
                             else if (selectedRoute) {
                                 isHighlighted = d.routes && d.routes.some(r => 
-                                    r.source.name === selectedRoute.source.name && 
-                                    r.destination.name === selectedRoute.destination.name
+                                    r.source.coordinates[0].toFixed(1) === selectedRoute.source.coordinates[0].toFixed(1) &&
+                                    r.source.coordinates[1].toFixed(1) === selectedRoute.source.coordinates[1].toFixed(1) &&
+                                    r.destination.coordinates[0].toFixed(1) === selectedRoute.destination.coordinates[0].toFixed(1) &&
+                                    r.destination.coordinates[1].toFixed(1) === selectedRoute.destination.coordinates[1].toFixed(1) &&
+                                    (r.via_city?.name || null) === (selectedRoute.via_city?.name || null)
                                 );
                             }
                             else if (hoveredRoute) {
                                 isHighlighted = d.routes && d.routes.some(r => 
-                                    r.source.name === hoveredRoute.source.name && 
-                                    r.destination.name === hoveredRoute.destination.name
+                                    r.source.coordinates[0].toFixed(1) === hoveredRoute.source.coordinates[0].toFixed(1) &&
+                                    r.source.coordinates[1].toFixed(1) === hoveredRoute.source.coordinates[1].toFixed(1) &&
+                                    r.destination.coordinates[0].toFixed(1) === hoveredRoute.destination.coordinates[0].toFixed(1) &&
+                                    r.destination.coordinates[1].toFixed(1) === hoveredRoute.destination.coordinates[1].toFixed(1) &&
+                                    (r.via_city?.name || null) === (hoveredRoute.via_city?.name || null)
                                 );
                             }
                             
@@ -3410,9 +3801,9 @@
                             const alpha = isHighlighted ? 200 : 5;
                             return [color[0], color[1], color[2], alpha];
                         },
-                    getSize: 22,
-                        sizeMinPixels: 7,
-                        sizeMaxPixels: 30,
+                    getSize: 14,  // Reduced: 22→14
+                        sizeMinPixels: 3,  // Reduced: 7→3
+                        sizeMaxPixels: 16,  // Reduced: 30→16
                         iconAtlas: 'data:image/svg+xml;base64,' + btoa(`
                             <svg width="128" height="128" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M 64 100 L 26 40 L 102 40 Z" fill="white" stroke="rgba(0,0,0,0.3)" stroke-width="3"/>
@@ -3531,16 +3922,9 @@
             } else {
                     selectedPoint = clickedPoint;
                 }
-                updateVisualization();
-                
-            } else {
-                // Click on empty space - clear all selections
-                if (selectedRoute || selectedPoint) {
-                    selectedRoute = null;
-                    selectedPoint = null;
                     updateVisualization();
                 }
-            }
+            // Note: Clicks on empty space are handled by the global onClick in initDeckGL
         }
 
         function handleHover(info) {
@@ -3601,7 +3985,7 @@
                     
                     html = `
                         <div class="tooltip-title">${titlePrefix}</div>
-                        <div class="tooltip-item">📦 Quantity: ${(displayData.quantity || 0).toLocaleString()}</div>
+                        <div class="tooltip-item">📦 Quantity: ${(displayData.quantity || 0).toLocaleString()} kg</div>
                         <div class="tooltip-item">🔄 Flows: ${(displayData.flows || 0).toLocaleString()}</div>
                     `;
                     
@@ -3680,7 +4064,7 @@
             switchColorMode(mode);
         }
 
-        // 统计图表选择函数 (Multi-select toggle)
+        // Statistics chart selection function (Multi-select toggle)
         function selectRuralUrbanStat(element, type) {
             // Toggle multi-select
             const index = selectedFilters.ruralUrban.indexOf(type);
@@ -3864,6 +4248,12 @@
 
             // Show arcs
             document.getElementById('showArcs').addEventListener('change', updateVisualization);
+
+            // Use real paths toggle
+            document.getElementById('useRealPaths').addEventListener('change', updateVisualization);
+
+            // Flow animation toggle
+            document.getElementById('showFlowAnimation').addEventListener('change', updateVisualization);
 
             // Show points
             document.getElementById('showPoints').addEventListener('change', updateVisualization);

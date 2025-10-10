@@ -7,6 +7,9 @@ version_*/
 # Ignore try/test folders
 try_*/
 
+# Ignore cache folders
+*cache/
+
 # Ignore common files
 .DS_Store
 *.log
