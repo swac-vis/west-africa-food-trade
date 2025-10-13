@@ -164,6 +164,50 @@
             letter-spacing: 0.5px;
         }
 
+        /* Panel Tabs */
+        .panel-tabs {
+            display: flex;
+            gap: 4px;
+            margin: -16px -12px 16px -12px;
+            padding: 0 12px;
+            background: #f7fafc;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .panel-tab {
+            flex: 1;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #718096;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .panel-tab:hover {
+            color: #2d3748;
+            background: rgba(66, 153, 225, 0.1);
+        }
+
+        .panel-tab.active {
+            color: #2b6cb0;
+            border-bottom-color: #4299e1;
+            background: white;
+        }
+
+        .panel-content {
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .control-group {
             margin-bottom: 14px;
             width: 100%;
@@ -741,6 +785,12 @@
             max-width: 280px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.4);
             display: none;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .tooltip.pinned {
+            box-shadow: 0 4px 20px rgba(66, 153, 225, 0.6), 0 0 0 2px rgba(66, 153, 225, 0.5);
+            background: rgba(26, 32, 44, 0.98);
         }
 
         .tooltip-title {
@@ -835,9 +885,18 @@
         </div>
 
     <div class="control-panel" id="control-panel" style="display: none;">
-        <h3>Filters</h3>
+        <!-- Tab Switcher -->
+        <div class="panel-tabs">
+            <div class="panel-tab active" onclick="switchPanelTab('filters')">
+                <span>🔍 Filters</span>
+            </div>
+            <div class="panel-tab" onclick="switchPanelTab('controls')">
+                <span>⚙️ Controls</span>
+            </div>
+        </div>
 
-
+        <!-- Filters Tab Content -->
+        <div class="panel-content" id="filtersPanel">
             <!-- Rural-Urban Flow Pattern (always visible) -->
             <div class="control-group" id="ruralUrbanFilterGroup">
                 <label>Flow Pattern</label>
@@ -892,166 +951,178 @@
                 </div>
             </div>
 
-            <!-- Route Filter -->
+            <!-- Route Display (without Heatmap) -->
             <div class="control-group">
-                <label>Route Filter</label>
+                <label>Route Display</label>
                 <div class="stats-chart">
                     <div class="stat-bar active" onclick="selectRouteFilterStat(this, 'all')">
-                        <div class="stat-bar-label">All</div>
+                        <div class="stat-bar-label">All Routes</div>
                     </div>
                     <div class="stat-bar" onclick="selectRouteFilterStat(this, 'major')">
-                        <div class="stat-bar-label">Major</div>
+                        <div class="stat-bar-label">Major (≥10 flows)</div>
                     </div>
                     <div class="stat-bar" onclick="selectRouteFilterStat(this, 'top100')">
-                        <div class="stat-bar-label">Top100</div>
+                        <div class="stat-bar-label">Top 100</div>
                     </div>
-                    <div class="stat-bar" onclick="selectRouteFilterStat(this, 'heatmap')">
-                        <div class="stat-bar-label">Heatmap</div>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="visibleRoutes">-</div>
+                    <div class="stat-label" id="routesLabel">Routes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalFlows">-</div>
+                    <div class="stat-label">Quantity (kg)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="intlFlows">-</div>
+                    <div class="stat-label">International</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgDistance">-</div>
+                    <div class="stat-label" id="distanceLabel">Avg Distance</div>
                 </div>
             </div>
         </div>
 
-        <div class="control-group">
-            <label>
-                Arc Thickness
-                <span class="range-value" id="arcWidthValue">0.3</span>
-            </label>
-            <input type="range" id="arcWidth" min="0.1" max="5" value="0.3" step="0.1">
-        </div>
+        <!-- Controls Tab Content -->
+        <div class="panel-content" id="controlsPanel" style="display: none;">
 
-        <div class="checkbox-group">
+            <div class="checkbox-group">
+                <label for="showHeatmap">🗺️ Heatmap view</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="showHeatmap">
+                    <span class="toggle-slider"></span>
+                </div>
+            </div>
+
+            <div class="checkbox-group">
+                <label for="showViaCity">⤴ Transit cities</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="showViaCity">
+                    <span class="toggle-slider"></span>
+                </div>
+            </div>
+
+            <div class="checkbox-group">
+                <label for="showPoints">📍 Location points</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="showPoints">
+                    <span class="toggle-slider"></span>
+                </div>
+            </div>
+            
+            <div class="checkbox-group">
                 <label for="showArcs">📈 Flow arcs</label>
                 <div class="toggle-switch">
                     <input type="checkbox" id="showArcs" checked>
                     <span class="toggle-slider"></span>
-        </div>
-        </div>
-
-            <div class="checkbox-group">
-                <label for="useRealPaths">🛣️ Show real paths (OSRM)</label>
-                <div class="toggle-switch">
-                    <input type="checkbox" id="useRealPaths" checked>
-                    <span class="toggle-slider"></span>
-        </div>
-        </div>
+                </div>
+            </div>
 
             <div class="checkbox-group">
                 <label for="showFlowAnimation">🌊 Flow animation</label>
                 <div class="toggle-switch">
                     <input type="checkbox" id="showFlowAnimation" checked>
                     <span class="toggle-slider"></span>
-        </div>
-        </div>
+                </div>
+            </div>
 
-        <div class="checkbox-group">
-                <label for="showPoints">📍 Location points</label>
+            <div class="checkbox-group">
+                <label for="useRealPaths">🛣️ Show paths</label>
                 <div class="toggle-switch">
-            <input type="checkbox" id="showPoints">
-                    <span class="toggle-slider"></span>
-        </div>
-        </div>
-
-        <div class="checkbox-group">
-                <label for="showViaCity">⤴ Transit cities</label>
-                <div class="toggle-switch">
-            <input type="checkbox" id="showViaCity">
+                    <input type="checkbox" id="useRealPaths" checked>
                     <span class="toggle-slider"></span>
                 </div>
-        </div>
+            </div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value" id="visibleRoutes">-</div>
-                <div class="stat-label" id="routesLabel">Routes</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="totalFlows">-</div>
-                <div class="stat-label">Quantity (kg)</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="intlFlows">-</div>
-                <div class="stat-label">International</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="avgDistance">-</div>
-                <div class="stat-label" id="distanceLabel">Avg Distance</div>
-            </div>
-        </div>
 
-        <!-- Color Mode -->
-        <div class="control-group" style="margin-top: 20px;">
-            <label>Color Mode</label>
-            <div class="filter-bars">
-                <div class="filter-bar-item active color-mode-bar" data-mode="source_destination" onclick="selectColorMode(this, 'source_destination')">
-                    <span class="filter-bar-label">Source-Dest</span>
-                    <div class="bar-container"><div class="bar-fill"></div></div>
-                    <span class="bar-value">Default</span>
-                </div>
-                <div class="filter-bar-item color-mode-bar" data-mode="rural_urban" onclick="selectColorMode(this, 'rural_urban')">
-                    <span class="filter-bar-label">Rural-Urban</span>
-                    <div class="bar-container"><div class="bar-fill"></div></div>
-                    <span class="bar-value"></span>
-                </div>
-                <div class="filter-bar-item color-mode-bar" data-mode="international" onclick="selectColorMode(this, 'international')">
-                    <span class="filter-bar-label">Trade Type</span>
-                    <div class="bar-container"><div class="bar-fill"></div></div>
-                    <span class="bar-value"></span>
+            <div class="control-group" style="margin-top: 20px;">
+                <label>
+                    Arc Thickness
+                    <span class="range-value" id="arcWidthValue">0.3</span>
+                </label>
+                <input type="range" id="arcWidth" min="0.1" max="5" value="0.3" step="0.1">
+            </div>
+
+            <!-- Color Mode -->
+            <div class="control-group" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e9ecef;">
+                <label>Color Mode</label>
+                <div class="filter-bars">
+                    <div class="filter-bar-item active color-mode-bar" data-mode="source_destination" onclick="selectColorMode(this, 'source_destination')">
+                        <span class="filter-bar-label">Source-Dest</span>
+                        <div class="bar-container"><div class="bar-fill"></div></div>
+                        <span class="bar-value">Default</span>
+                    </div>
+                    <div class="filter-bar-item color-mode-bar" data-mode="rural_urban" onclick="selectColorMode(this, 'rural_urban')">
+                        <span class="filter-bar-label">Rural-Urban</span>
+                        <div class="bar-container"><div class="bar-fill"></div></div>
+                        <span class="bar-value"></span>
+                    </div>
+                    <div class="filter-bar-item color-mode-bar" data-mode="international" onclick="selectColorMode(this, 'international')">
+                        <span class="filter-bar-label">Trade Type</span>
+                        <div class="bar-container"><div class="bar-fill"></div></div>
+                        <span class="bar-value"></span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="legend" id="legendRuralUrban" style="display: none;">
-            <div class="legend-title">Point Encoding</div>
-            <div class="legend-item">
-                <div class="legend-triangle legend-triangle-up" style="border-bottom-color: #FBE819;"></div>
-                <span>Urban Source</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-triangle legend-triangle-down" style="border-top-color: #FBE819;"></div>
-                <span>Urban Destination</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-triangle legend-triangle-up" style="border-bottom-color: #2A50EA;"></div>
-                <span>Rural Source</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-triangle legend-triangle-down" style="border-top-color: #2A50EA;"></div>
-                <span>Rural Destination</span>
-            </div>
-        </div>
-
-        <div class="legend" id="legendInternational" style="display: none;">
-            <div class="legend-title">Flow Types (Arc Color)</div>
-            <div class="legend-item">
-                <div class="legend-line" style="background: #e53e3e;"></div>
-                <span>🌐 International</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-line" style="background: #3182ce;"></div>
-                <span>🏠 Domestic</span>
-            </div>
-            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #edf2f7;">
-                <div class="legend-title" style="margin-bottom: 8px;">Point Direction</div>
+            <div class="legend" id="legendRuralUrban" style="display: none;">
+                <div class="legend-title">Point Encoding</div>
                 <div class="legend-item">
-                    <div class="legend-triangle legend-triangle-up" style="border-bottom-color: #888;"></div>
-                    <span style="font-size: 0.85rem;">Source</span>
+                    <div class="legend-triangle legend-triangle-up" style="border-bottom-color: #FBE819;"></div>
+                    <span>Urban Source</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-triangle legend-triangle-down" style="border-top-color: #888;"></div>
-                    <span style="font-size: 0.85rem;">Destination</span>
+                    <div class="legend-triangle legend-triangle-down" style="border-top-color: #FBE819;"></div>
+                    <span>Urban Destination</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-triangle legend-triangle-up" style="border-bottom-color: #2A50EA;"></div>
+                    <span>Rural Source</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-triangle legend-triangle-down" style="border-top-color: #2A50EA;"></div>
+                    <span>Rural Destination</span>
                 </div>
             </div>
-        </div>
 
-        <div class="legend" id="legendSourceDest">
-            <div class="legend-title">Point Type</div>
-            <div class="legend-item">
-                <div class="legend-triangle legend-triangle-up" style="border-bottom-color: #10b981;"></div>
-                <span>Source (origin points)</span>
+            <div class="legend" id="legendInternational" style="display: none;">
+                <div class="legend-title">Flow Types (Arc Color)</div>
+                <div class="legend-item">
+                    <div class="legend-line" style="background: #e53e3e;"></div>
+                    <span>🌐 International</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-line" style="background: #3182ce;"></div>
+                    <span>🏠 Domestic</span>
+                </div>
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #edf2f7;">
+                    <div class="legend-title" style="margin-bottom: 8px;">Point Direction</div>
+                    <div class="legend-item">
+                        <div class="legend-triangle legend-triangle-up" style="border-bottom-color: #888;"></div>
+                        <span style="font-size: 0.85rem;">Source</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-triangle legend-triangle-down" style="border-top-color: #888;"></div>
+                        <span style="font-size: 0.85rem;">Destination</span>
+                    </div>
+                </div>
             </div>
-            <div class="legend-item">
-                <div class="legend-triangle legend-triangle-down" style="border-top-color: #ef4444;"></div>
-                <span>Destination (arrival points)</span>
+
+            <div class="legend" id="legendSourceDest">
+                <div class="legend-title">Point Type</div>
+                <div class="legend-item">
+                    <div class="legend-triangle legend-triangle-up" style="border-bottom-color: #10b981;"></div>
+                    <span>Source (origin points)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-triangle legend-triangle-down" style="border-top-color: #ef4444;"></div>
+                    <span>Destination (arrival points)</span>
+                </div>
             </div>
         </div>
     </div>
@@ -1064,7 +1135,8 @@
 
         let allDataByYear = null; // New hierarchical data: year → route_id → route data
         let allRoutesFlat = []; // Flattened array of all routes for compatibility
-        let currentDataSource = 'all';
+        let currentDataSource = 'all'; // Route filter: 'all', 'major', 'top100'
+        let showHeatmapView = false; // Whether to show heatmap view (separate from route filter)
         let filteredRoutes = [];
         let deckgl = null;
         let colorMode = 'source_destination'; // Color mode: 'source_destination', 'rural_urban', or 'international'
@@ -1079,6 +1151,7 @@
         let hoveredRoute = null; // Currently hovered route
         let selectedRoute = null; // Currently selected (clicked) route
         let selectedPoint = null; // Currently selected point {position: [lon, lat], type: 'source'|'destination'}
+        let pinnedTooltip = null; // Pinned tooltip info: {html: string, x: number, y: number, object: any}
         
 
         // New hierarchical data file - organized by year
@@ -1801,11 +1874,13 @@
                     // Layer objects have their own onClick handlers
                     if (!info.object) {
                         // Clicked on empty space (no layer object)
-                        if (selectedRoute || selectedPoint || hoveredRoute) {
+                        if (selectedRoute || selectedPoint || hoveredRoute || pinnedTooltip) {
                             selectedRoute = null;
                             selectedPoint = null;
                             hoveredRoute = null;  // Also clear hover state
+                            pinnedTooltip = null;  // Clear pinned tooltip
                             updateVisualization();
+                            updateTooltipDisplay();
                         }
                     }
                     // If info.object exists, the layer's onClick (handleClick) will be called
@@ -1828,11 +1903,7 @@
                     await loadAllData();
                 }
 
-                if (source === 'heatmap') {
-                    loadingEl.querySelector('.loading-text').textContent = 'Generating heatmap...';
-                    loadingEl.querySelector('.loading-subtext').textContent = 'Aggregating to grid';
-                }
-
+                // Only handle route filters (all, major, top100)
                 currentDataSource = source;
                 filterAndUpdate();
 
@@ -2763,20 +2834,23 @@
                 if (!labelEl) return;
                 
                 const label = labelEl.textContent.trim();
-                let filterType = label.toLowerCase();
+                let filterType;
                 
-                if (label === 'All') {
+                // Match based on label text
+                if (label.includes('All')) {
+                    filterType = 'all';
                     bar.style.height = '100%';
                     bar.style.opacity = '1';
                     bar.style.pointerEvents = 'auto';
-                } else if (label === 'Top100') {
+                } else if (label.includes('Top 100') || label.includes('Top100')) {
                     filterType = 'top100';
                     const count = routeFilterStats[filterType];
                     const percentage = Math.round((count / maxCount) * 100);
                     bar.style.height = `${Math.max(percentage, 5)}%`; // Minimum 5% for visibility
                     bar.style.opacity = '1';
                     bar.style.pointerEvents = 'auto';
-                } else if (routeFilterStats[filterType]) {
+                } else if (label.includes('Major')) {
+                    filterType = 'major';
                     const count = routeFilterStats[filterType];
                     const percentage = Math.round((count / maxCount) * 100);
                     bar.style.height = `${percentage}%`;
@@ -2881,11 +2955,13 @@
             // Update filter options based on current selections (constraints)
             updateFilterOptions({ year, commodity, transport, ruralUrban, tradeType, viaCity });
             
-            if (currentDataSource === 'heatmap') {
-                // For heatmap: filter routes first, then generate heatmap from filtered data
-                const filters = { year, commodity, transport };
-                
-                let routesToAggregate = allRoutesFlat.map(route => {
+            // Get base data according to route filter (all, major, top100)
+            let data = getFilteredDataBySource(currentDataSource);
+            const filters = { year, commodity, transport };
+            
+            if (showHeatmapView) {
+                // Heatmap view: filter routes first, then generate heatmap from filtered data
+                let routesToAggregate = data.map(route => {
                     // Apply rural-urban filter (works in all color modes) - supports multiple selections
                     if (!ruralUrban.includes('all') && ruralUrban.length > 0) {
                         if (!ruralUrban.includes(route.flow_type)) {
@@ -2926,10 +3002,7 @@
                 // Generate heatmap from filtered routes
                 filteredRoutes = generateHeatmapFromRoutes(routesToAggregate);
             } else {
-                // For other modes: standard route filtering
-                let data = getFilteredDataBySource(currentDataSource);
-                const filters = { year, commodity, transport };
-                
+                // Route view: show filtered routes
                 filteredRoutes = data.map(route => {
                     // Apply rural-urban filter (works in all color modes) - supports multiple selections
                     if (!ruralUrban.includes('all') && ruralUrban.length > 0) {
@@ -2971,7 +3044,7 @@
         }
 
         function updateStats() {
-            if (currentDataSource === 'heatmap') {
+            if (showHeatmapView) {
                 // Update labels for heatmap mode
                 document.getElementById('routesLabel').textContent = 'Routes';
                 document.getElementById('distanceLabel').textContent = 'Grid Points';
@@ -3232,7 +3305,7 @@
 
             const layers = [];
 
-            if (currentDataSource === 'heatmap') {
+            if (showHeatmapView) {
                 // Heatmap layer
                 const heatmapLayer = new HeatmapLayer({
                     id: 'heatmap-layer',
@@ -3618,7 +3691,7 @@
 
                 // Points layer - icons for source (▲) and destination (▼)
             // Moved outside of showArcs block so points can display independently
-            if (showPoints && currentDataSource !== 'heatmap') {
+            if (showPoints && !showHeatmapView) {
                     const sourcePointsMap = new Map();
                     const destPointsMap = new Map();
                     
@@ -3821,7 +3894,7 @@
                 }
 
             // Via city visualization - moved outside showArcs so it can display independently
-            if (showViaCity && currentDataSource !== 'heatmap') {
+            if (showViaCity && !showHeatmapView) {
                     // Extract unique via cities from filtered routes
                     const viaCityMap = new Map();
                     filteredRoutes.forEach(r => {
@@ -3900,10 +3973,14 @@
                 selectedPoint = null;
                 if (selectedRoute === clickedRoute) {
                     selectedRoute = null;
+                    pinnedTooltip = null; // Clear pinned tooltip when deselecting
                 } else {
                     selectedRoute = clickedRoute;
+                    // Generate and pin tooltip for this route
+                    pinnedTooltip = generateTooltipContent(info.object, info.x, info.y);
                 }
                 updateVisualization();
+                updateTooltipDisplay();
                 
             } else if (info.object && info.object.position && info.object.type) {
                 // Clicked on a point (source or destination)
@@ -3919,12 +3996,166 @@
                     selectedPoint.position[1] === clickedPoint.position[1] && 
                     selectedPoint.type === clickedPoint.type) {
                     selectedPoint = null; // Deselect if clicking same point
+                    pinnedTooltip = null; // Clear pinned tooltip when deselecting
             } else {
                     selectedPoint = clickedPoint;
+                    // Generate and pin tooltip for this point
+                    pinnedTooltip = generateTooltipContent(info.object, info.x, info.y);
                 }
                     updateVisualization();
+                    updateTooltipDisplay();
                 }
             // Note: Clicks on empty space are handled by the global onClick in initDeckGL
+        }
+
+        /**
+         * Generate tooltip content HTML for an object
+         */
+        function generateTooltipContent(obj, x, y) {
+            let html = '';
+
+            if (obj.source && obj.destination) {
+                // Arc (route) tooltip - use _displayData for precise values
+                const displayData = obj._displayData || obj;
+                
+                // Build title with via_city
+                let titlePrefix = '';
+                if (colorMode === 'rural_urban') {
+                    const sourceIcon = obj.source.is_urban ? '🏙️' : '🏘️';
+                    const destIcon = obj.destination.is_urban ? '🏙️' : '🏘️';
+                    
+                    // Show three-point route with via_city
+                    if (obj.via_city && obj.via_city.name) {
+                        titlePrefix = `${sourceIcon} ${obj.source.name} → ${obj.via_city.name} → ${destIcon} ${obj.destination.name}`;
+                    } else {
+                        titlePrefix = `${sourceIcon} ${obj.source.name} → ${destIcon} ${obj.destination.name}`;
+                    }
+                } else {
+                    // For other color modes
+                    if (obj.via_city && obj.via_city.name) {
+                        titlePrefix = `${obj.source.name} → ${obj.via_city.name} → ${obj.destination.name}`;
+                    } else {
+                        titlePrefix = `${obj.source.name} → ${obj.destination.name}`;
+                    }
+                }
+                
+                html = `
+                    <div class="tooltip-title">${titlePrefix}</div>
+                    <div class="tooltip-item">📦 Quantity: ${(displayData.quantity || 0).toLocaleString()} kg</div>
+                    <div class="tooltip-item">🔄 Flows: ${(displayData.flows || 0).toLocaleString()}</div>
+                `;
+                
+                // Show year range if multiple years
+                if (displayData.years && displayData.years.length > 0) {
+                    const yearDisplay = displayData.years.length === 1 
+                        ? displayData.years[0]
+                        : `${Math.min(...displayData.years)}-${Math.max(...displayData.years)}`;
+                    html += `<div class="tooltip-item">📅 Year: ${yearDisplay}</div>`;
+                }
+                
+                // Show flow type based on color mode
+                if (colorMode === 'rural_urban' && obj.flow_type_label) {
+                    html += `<div class="tooltip-item">🔀 ${obj.flow_type_label}</div>`;
+                } else if (colorMode === 'international') {
+                    html += `<div class="tooltip-item">${obj.is_international ? '🌐 International' : '🏠 Domestic'}</div>`;
+                } else if (colorMode === 'source_destination') {
+                    html += `<div class="tooltip-item">📤 Source → 📥 Destination</div>`;
+                }
+                
+                html += `<div class="tooltip-item">📍 ${obj.source.country} → ${obj.destination.country}</div>`;
+                
+                // Show transportation modes (filtered based on current commodity and transport filters)
+                if (displayData.transport_modes && Object.keys(displayData.transport_modes).length > 0) {
+                    let transportModes = new Set();
+                    
+                    // If commodity filter is active, only show transports for selected commodities
+                    if (selectedFilters.commodities.length > 0 && obj.by_commodity) {
+                        selectedFilters.commodities.forEach(commFilter => {
+                            const targetCommodity = COMMODITY_MAP[commFilter];
+                            const commodityData = obj.by_commodity[targetCommodity];
+                            if (commodityData && commodityData.transport_modes) {
+                                Object.keys(commodityData.transport_modes).forEach(trans => {
+                                    // Also respect transport filter if active
+                                    if (selectedFilters.transports.length === 0 || selectedFilters.transports.includes(trans)) {
+                                        transportModes.add(trans);
+                                    }
+                                });
+                            }
+                        });
+                    } 
+                    // If only transport filter is active
+                    else if (selectedFilters.transports.length > 0) {
+                        selectedFilters.transports.forEach(trans => {
+                            if (displayData.transport_modes[trans]) {
+                                transportModes.add(trans);
+                            }
+                        });
+                    }
+                    // No filter active, show all transports
+                    else {
+                        Object.keys(displayData.transport_modes).forEach(trans => {
+                            transportModes.add(trans);
+                        });
+                    }
+                    
+                    if (transportModes.size > 0) {
+                        const transportList = Array.from(transportModes).join(', ');
+                        html += `<div class="tooltip-item">🚗 ${transportList}</div>`;
+                    }
+                }
+                
+                // Show commodities from displayData (precise for filters)
+                if (displayData.commodities) {
+                    const commodities = displayData.commodities;
+                    const commList = Object.entries(commodities)
+                        .map(([name, count]) => `${name} (${count})`)
+                        .join(', ');
+                    html += `<div class="tooltip-commodities">📦 ${commList}</div>`;
+                }
+            } else if (obj.name) {
+                // Point tooltip (source, destination, or via_city)
+                if (obj.routeCount !== undefined) {
+                    // Via city point
+                    html = `
+                        <div class="tooltip-title">🏙️ ${obj.name}</div>
+                        <div class="tooltip-item">Transit City</div>
+                        <div class="tooltip-item">🔄 ${obj.routeCount} routes pass through</div>
+                    `;
+                } else {
+                    // Source or destination point
+                    const urbanStatus = obj.is_urban !== undefined ? (obj.is_urban ? '🏙️ Urban' : '🏘️ Rural') : '';
+                    const pointTypeLabel = obj.type === 'source' ? '📤 Source' : '📥 Destination';
+                    html = `
+                        <div class="tooltip-title">${obj.name}</div>
+                        <div class="tooltip-item">📍 ${obj.country}</div>
+                        ${urbanStatus && colorMode === 'rural_urban' ? `<div class="tooltip-item">${urbanStatus}</div>` : ''}
+                        <div class="tooltip-item">${pointTypeLabel}</div>
+                    `;
+                }
+            }
+
+            return { html, x, y, object: obj };
+        }
+
+        /**
+         * Update tooltip display based on pinned or hover state
+         */
+        function updateTooltipDisplay() {
+            const tooltip = document.getElementById('tooltip');
+            
+            if (pinnedTooltip) {
+                // Show pinned tooltip
+                tooltip.innerHTML = pinnedTooltip.html;
+                tooltip.style.display = 'block';
+                tooltip.style.left = pinnedTooltip.x + 'px';
+                tooltip.style.top = pinnedTooltip.y + 'px';
+                tooltip.classList.add('pinned'); // Add a class to indicate pinned state
+            } else {
+                // Clear tooltip when no pinned state
+                tooltip.classList.remove('pinned');
+                tooltip.style.display = 'none';
+                // Tooltip will be controlled by handleHover
+            }
         }
 
         function handleHover(info) {
@@ -3945,6 +4176,11 @@
                     hoveredRoute = null;
                     updateVisualization();
                 }
+            }
+            
+            // Don't update tooltip on hover if there's a pinned tooltip
+            if (pinnedTooltip) {
+                return;
             }
             
             if (info.object) {
@@ -4008,15 +4244,50 @@
                     
                     html += `<div class="tooltip-item">📍 ${obj.source.country} → ${obj.destination.country}</div>`;
                     
-                    // Show main transportation mode from displayData
-                    if (displayData.main_transport) {
-                        html += `<div class="tooltip-item">🚗 ${displayData.main_transport}</div>`;
+                    // Show transportation modes (filtered based on current commodity and transport filters)
+                    if (displayData.transport_modes && Object.keys(displayData.transport_modes).length > 0) {
+                        let transportModes = new Set();
+                        
+                        // If commodity filter is active, only show transports for selected commodities
+                        if (selectedFilters.commodities.length > 0 && obj.by_commodity) {
+                            selectedFilters.commodities.forEach(commFilter => {
+                                const targetCommodity = COMMODITY_MAP[commFilter];
+                                const commodityData = obj.by_commodity[targetCommodity];
+                                if (commodityData && commodityData.transport_modes) {
+                                    Object.keys(commodityData.transport_modes).forEach(trans => {
+                                        // Also respect transport filter if active
+                                        if (selectedFilters.transports.length === 0 || selectedFilters.transports.includes(trans)) {
+                                            transportModes.add(trans);
+                                        }
+                                    });
+                                }
+                            });
+                        } 
+                        // If only transport filter is active
+                        else if (selectedFilters.transports.length > 0) {
+                            selectedFilters.transports.forEach(trans => {
+                                if (displayData.transport_modes[trans]) {
+                                    transportModes.add(trans);
+                                }
+                            });
+                        }
+                        // No filter active, show all transports
+                        else {
+                            Object.keys(displayData.transport_modes).forEach(trans => {
+                                transportModes.add(trans);
+                            });
+                        }
+                        
+                        if (transportModes.size > 0) {
+                            const transportList = Array.from(transportModes).join(', ');
+                            html += `<div class="tooltip-item">🚗 ${transportList}</div>`;
+                        }
                     }
                     
                     // Show commodities from displayData (precise for filters)
                     if (displayData.commodities) {
                         const commodities = displayData.commodities;
-                        const commList = Object.entries(commodities).slice(0, 3)
+                        const commList = Object.entries(commodities)
                             .map(([name, count]) => `${name} (${count})`)
                             .join(', ');
                         html += `<div class="tooltip-commodities">📦 ${commList}</div>`;
@@ -4103,6 +4374,7 @@
             bars.forEach(bar => bar.classList.remove('active'));
             element.classList.add('active');
             
+            // Switch route filter (all, major, top100)
             switchDataSource(filter);
         }
 
@@ -4236,6 +4508,25 @@
             }
         }
 
+        function switchPanelTab(tab) {
+            // Update tab active state
+            const tabs = document.querySelectorAll('.panel-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            event.target.closest('.panel-tab').classList.add('active');
+            
+            // Show/hide panel content
+            const filtersPanel = document.getElementById('filtersPanel');
+            const controlsPanel = document.getElementById('controlsPanel');
+            
+            if (tab === 'filters') {
+                filtersPanel.style.display = 'block';
+                controlsPanel.style.display = 'none';
+            } else if (tab === 'controls') {
+                filtersPanel.style.display = 'none';
+                controlsPanel.style.display = 'block';
+            }
+        }
+
         // ========== Event Listeners ==========
 
         function setupEventListeners() {
@@ -4244,6 +4535,12 @@
                 const value = parseFloat(this.value).toFixed(1);
                 document.getElementById('arcWidthValue').textContent = value;
                 updateVisualization();
+            });
+
+            // Heatmap view toggle
+            document.getElementById('showHeatmap').addEventListener('change', function() {
+                showHeatmapView = this.checked;
+                filterAndUpdate(); // Re-render with current route filter but different view mode
             });
 
             // Show arcs
