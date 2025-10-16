@@ -737,6 +737,189 @@
             background-color: #0056b3;
         }
 
+        .export-btn {
+            width: 100%;
+            padding: 10px 16px;
+            background: #1f2937;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .export-btn:hover {
+            background: #374151;
+        }
+
+        .export-btn:active {
+            background: #111827;
+        }
+
+        /* Map Controls Floating Panel */
+        .map-controls {
+            position: absolute;
+            bottom: 30px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            padding: 10px 12px;
+            border-radius: 3px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            z-index: 5;
+            border: 1px solid rgba(0,0,0,0.12);
+            transition: transform 0.3s ease;
+        }
+
+        .map-controls.collapsed {
+            transform: translateX(calc(100% - 30px));
+        }
+
+        .map-controls.collapsed .map-controls-content {
+            display: none;
+        }
+
+        .map-controls.collapsed .map-controls-title {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            padding-right: 0;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .map-controls-content {
+            display: block;
+        }
+
+        .map-controls-toggle {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            color: #9ca3af;
+            font-size: 0.65rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .map-controls.collapsed .map-controls-toggle {
+            display: none;
+        }
+
+        .map-controls-toggle:hover {
+            color: #4b5563;
+        }
+
+        .map-controls-title {
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: #9ca3af;
+            margin-bottom: 8px;
+            letter-spacing: 0.8px;
+            padding-right: 20px;
+        }
+
+        .map-control-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .map-control-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .map-control-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .basemap-selector {
+            display: flex;
+            gap: 4px;
+            flex-direction: row;
+        }
+
+        .basemap-option {
+            flex: 1;
+            padding: 5px 6px;
+            border-radius: 2px;
+            border: 1px solid #d1d5db;
+            background: white;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.15s;
+            text-align: center;
+            font-weight: 400;
+            color: #6b7280;
+        }
+
+        .basemap-option:hover {
+            border-color: #6b7280;
+        }
+
+        .basemap-option.active {
+            border-color: #1f2937;
+            background: #1f2937;
+            color: white;
+        }
+
+        .mini-toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+        }
+
+        .mini-toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .mini-toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #d1d5db;
+            transition: 0.2s;
+            border-radius: 20px;
+        }
+
+        .mini-toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.2s;
+            border-radius: 50%;
+        }
+
+        .mini-toggle-switch input:checked + .mini-toggle-slider {
+            background-color: #1f2937;
+        }
+
+        .mini-toggle-switch input:checked + .mini-toggle-slider:before {
+            transform: translateX(16px);
+        }
+
         .loading {
             position: absolute;
             top: 50%;
@@ -1129,6 +1312,47 @@
 
     <div class="tooltip" id="tooltip"></div>
 
+    <!-- Floating Map Controls -->
+    <div class="map-controls" id="mapControls">
+        <div class="map-controls-toggle" onclick="toggleMapControls()">✕</div>
+        <div class="map-controls-title" onclick="toggleMapControls()">VIEW</div>
+        
+        <div class="map-controls-content">
+            <!-- 2D/3D Toggle -->
+            <div class="map-control-item">
+                <span class="map-control-label">2D</span>
+                <label class="mini-toggle-switch">
+                    <input type="checkbox" id="use2DViewMap">
+                    <span class="mini-toggle-slider"></span>
+                </label>
+            </div>
+
+            <!-- Basemap Selector -->
+            <div class="map-control-item">
+                <div style="width: 100%;">
+                    <div class="map-control-label" style="margin-bottom: 6px;">Basemap</div>
+                    <div class="basemap-selector">
+                        <div class="basemap-option active" data-style="dark" onclick="changeBasemap('dark')">
+                            Dark
+                        </div>
+                        <div class="basemap-option" data-style="light" onclick="changeBasemap('light')">
+                            Light
+                        </div>
+                        <div class="basemap-option" data-style="voyager" onclick="changeBasemap('voyager')">
+                            Color
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Button -->
+            <div class="map-control-item">
+                <button class="export-btn" onclick="exportMapAsPNG()" style="margin-top: 4px; font-size: 0.7rem; padding: 6px 10px;">
+                    Export
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script>
         const {DeckGL, ArcLayer, ScatterplotLayer, HeatmapLayer, IconLayer, PathLayer, TripsLayer} = deck;
@@ -1141,6 +1365,15 @@
         let deckgl = null;
         let colorMode = 'source_destination'; // Color mode: 'source_destination', 'rural_urban', or 'international'
         let animationProgress = 0; // For flow animation (0-1)
+        let currentViewState = { longitude: 3, latitude: 9, zoom: 4.8, pitch: 35, bearing: 0 }; // Track current view
+        let currentBasemap = 'dark'; // Track current basemap
+        
+        // Basemap style URLs
+        const BASEMAP_STYLES = {
+            'dark': 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+            'light': 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+            'voyager': 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
+        };
         
         // Global statistics for legend (all available options without any filters)
         let globalStats = {
@@ -1869,6 +2102,11 @@
                 },
                 controller: true,
                 layers: [],
+                onViewStateChange: ({viewState}) => {
+                    // Track the current view state
+                    currentViewState = viewState;
+                    return viewState;
+                },
                 onClick: (info) => {
                     // Global click handler - only handles clicks on empty space
                     // Layer objects have their own onClick handlers
@@ -4508,6 +4746,137 @@
             }
         }
 
+        // Toggle map controls panel
+        function toggleMapControls() {
+            const mapControls = document.getElementById('mapControls');
+            mapControls.classList.toggle('collapsed');
+        }
+
+        // Change basemap style
+        function changeBasemap(style) {
+            if (!BASEMAP_STYLES[style]) {
+                console.error('Unknown basemap style:', style);
+                return;
+            }
+
+            currentBasemap = style;
+
+            // Update active state in UI
+            document.querySelectorAll('.basemap-option').forEach(option => {
+                option.classList.remove('active');
+                if (option.getAttribute('data-style') === style) {
+                    option.classList.add('active');
+                }
+            });
+
+            // Update deck.gl map style
+            deckgl.setProps({
+                mapStyle: BASEMAP_STYLES[style]
+            });
+
+            console.log(`Switched to ${style} basemap`);
+        }
+
+        // Export map as high-resolution PNG
+        function exportMapAsPNG() {
+            if (!deckgl) {
+                alert('Map not initialized. Please wait for the map to load.');
+                return;
+            }
+
+            // Show loading indicator
+            const btn = document.querySelector('.export-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Exporting...';
+            btn.disabled = true;
+
+            // Wait a bit to ensure the current frame is fully rendered
+            setTimeout(() => {
+                try {
+                    // Get all canvas elements (deck.gl and maplibre)
+                    const mapContainer = document.getElementById('map');
+                    const canvases = Array.from(mapContainer.querySelectorAll('canvas'));
+                    
+                    if (canvases.length === 0) {
+                        throw new Error('No canvas found');
+                    }
+
+                    console.log(`Found ${canvases.length} canvas elements`);
+
+                    // Sort canvases by z-index to ensure correct layering
+                    canvases.sort((a, b) => {
+                        const zIndexA = parseInt(window.getComputedStyle(a).zIndex) || 0;
+                        const zIndexB = parseInt(window.getComputedStyle(b).zIndex) || 0;
+                        return zIndexA - zIndexB;
+                    });
+
+                    // Find the size (use the largest canvas)
+                    let maxWidth = 0, maxHeight = 0;
+                    canvases.forEach(canvas => {
+                        maxWidth = Math.max(maxWidth, canvas.width);
+                        maxHeight = Math.max(maxHeight, canvas.height);
+                    });
+
+                    console.log(`Export size: ${maxWidth}x${maxHeight}`);
+
+                    // Create a composite canvas that combines all layers
+                    const exportCanvas = document.createElement('canvas');
+                    exportCanvas.width = maxWidth;
+                    exportCanvas.height = maxHeight;
+                    const ctx = exportCanvas.getContext('2d', { alpha: false });
+
+                    // Fill with background color first
+                    ctx.fillStyle = '#0a1929';
+                    ctx.fillRect(0, 0, maxWidth, maxHeight);
+
+                    // Draw all canvases in order (bottom to top)
+                    canvases.forEach((canvas, index) => {
+                        if (canvas.width > 0 && canvas.height > 0) {
+                            try {
+                                // Calculate position (center smaller canvases)
+                                const x = (maxWidth - canvas.width) / 2;
+                                const y = (maxHeight - canvas.height) / 2;
+                                ctx.drawImage(canvas, x, y);
+                                console.log(`Drew canvas ${index}: ${canvas.width}x${canvas.height}`);
+                            } catch (e) {
+                                console.warn('Could not draw canvas:', e);
+                            }
+                        }
+                    });
+
+                    // Convert to data URL with maximum quality
+                    const dataURL = exportCanvas.toDataURL('image/png', 1.0);
+                    
+                    // Check if the image is not empty
+                    if (dataURL === 'data:,') {
+                        throw new Error('Generated image is empty');
+                    }
+                    
+                    // Create download link
+                    const link = document.createElement('a');
+                    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                    link.download = `african_food_flows_${timestamp}.png`;
+                    link.href = dataURL;
+                    
+                    // Trigger download
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // Reset button
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    
+                    console.log('Map exported successfully!');
+                } catch (error) {
+                    console.error('Export failed:', error);
+                    alert(`Export failed: ${error.message}. Please try again.`);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            }, 800); // Increased wait time to ensure all layers are rendered
+        }
+
         function switchPanelTab(tab) {
             // Update tab active state
             const tabs = document.querySelectorAll('.panel-tab');
@@ -4538,6 +4907,26 @@
             });
 
             // Heatmap view toggle
+            // 2D/3D view toggle (floating map controls)
+            document.getElementById('use2DViewMap').addEventListener('change', function() {
+                const is2D = this.checked;
+                const newPitch = is2D ? 0 : 35;
+                
+                // Use the tracked currentViewState
+                deckgl.setProps({
+                    initialViewState: {
+                        longitude: currentViewState.longitude,
+                        latitude: currentViewState.latitude,
+                        zoom: currentViewState.zoom,
+                        pitch: newPitch,
+                        bearing: currentViewState.bearing,
+                        transitionDuration: 800
+                    }
+                });
+                
+                console.log(`Switched to ${is2D ? '2D' : '3D'} view (pitch: ${newPitch})`);
+            });
+
             document.getElementById('showHeatmap').addEventListener('change', function() {
                 showHeatmapView = this.checked;
                 filterAndUpdate(); // Re-render with current route filter but different view mode
