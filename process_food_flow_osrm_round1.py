@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """
-Enhanced food flows processing with Rural-Urban analysis
 Adds classification of flows by rural/urban patterns
 Now with OSRM real route paths
 New hierarchical data structure by year
@@ -35,13 +34,13 @@ from pathlib import Path
 from collections import defaultdict
 from datetime import datetime, timedelta
 
-# OSRM路径缓存
+# OSRM route cache
 ROUTE_CACHE = {}
-CACHE_FILE = 'osrm_route_cache_round1.json'  # round1 专用缓存
-PROGRESS_FILE = 'osrm_progress_round1.json'  # round1 专用进度
+CACHE_FILE = 'osrm_route_cache_round1.json'  # round1 cache file
+PROGRESS_FILE = 'osrm_progress_round1.json'  # round1 progress file
 
 def load_route_cache():
-    """加载OSRM路径缓存"""
+    """Load OSRM route cache"""
     global ROUTE_CACHE
     if os.path.exists(CACHE_FILE):
         with open(CACHE_FILE, 'r') as f:
@@ -50,13 +49,13 @@ def load_route_cache():
     return ROUTE_CACHE
 
 def save_route_cache():
-    """保存OSRM路径缓存"""
+    """Save OSRM route cache"""
     with open(CACHE_FILE, 'w') as f:
         json.dump(ROUTE_CACHE, f, indent=2)
     print(f"💾 Saved {len(ROUTE_CACHE)} routes to cache")
 
 def load_progress():
-    """加载处理进度"""
+    """Load processing progress"""
     if os.path.exists(PROGRESS_FILE):
         with open(PROGRESS_FILE, 'r') as f:
             progress = json.load(f)
@@ -65,7 +64,7 @@ def load_progress():
     return None
 
 def save_progress(processed, total, last_route_id):
-    """保存处理进度"""
+    """Save processing progress"""
     progress = {
         'processed': processed,
         'total': total,
@@ -76,33 +75,31 @@ def save_progress(processed, total, last_route_id):
         json.dump(progress, f, indent=2)
 
 def save_intermediate_results(data, filename='food_flows_by_year_temp.json'):
-    """保存中间结果（防止数据丢失）"""
+    """Save intermediate results to prevent data loss"""
     with open(filename, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
     print(f"💾 Saved intermediate results to {filename}")
 
 def simplify_path(points, epsilon=0.001):
     """
-    使用 Douglas-Peucker 算法简化路径
-    epsilon: 简化阈值（度数），0.001 约等于 111 米
+    Simplify path using Douglas-Peucker algorithm
+    epsilon: simplification threshold (degrees), 0.001 ≈ 111 meters
     """
     if len(points) < 3:
         return points
     
     def perpendicular_distance(point, line_start, line_end):
-        """计算点到线段的垂直距离"""
+        """Calculate perpendicular distance from point to line segment"""
         x0, y0 = point
         x1, y1 = line_start
         x2, y2 = line_end
         
-        # 线段长度
         dx = x2 - x1
         dy = y2 - y1
         
         if dx == 0 and dy == 0:
             return ((x0 - x1)**2 + (y0 - y1)**2)**0.5
         
-        # 点到线的距离
         t = max(0, min(1, ((x0 - x1) * dx + (y0 - y1) * dy) / (dx * dx + dy * dy)))
         proj_x = x1 + t * dx
         proj_y = y1 + t * dy
@@ -110,11 +107,11 @@ def simplify_path(points, epsilon=0.001):
         return ((x0 - proj_x)**2 + (y0 - proj_y)**2)**0.5
     
     def rdp(points, epsilon):
-        """递归 Douglas-Peucker 算法"""
+        """Recursive Douglas-Peucker algorithm"""
         if len(points) < 3:
             return points
         
-        # 找到距离起点-终点连线最远的点
+        # Find the point farthest from start-end line
         max_dist = 0
         max_index = 0
         
@@ -124,7 +121,7 @@ def simplify_path(points, epsilon=0.001):
                 max_dist = dist
                 max_index = i
         
-        # 如果最大距离大于阈值，递归简化
+        # If max distance > threshold, recursively simplify
         if max_dist > epsilon:
             left = rdp(points[:max_index + 1], epsilon)
             right = rdp(points[max_index:], epsilon)
@@ -137,14 +134,14 @@ def simplify_path(points, epsilon=0.001):
 
 def print_progress_bar(current, total, success, fail, start_time, prefix='Progress'):
     """
-    打印进度条和统计信息
+    Print progress bar and statistics
     """
-    # 计算百分比
+    # Calculate percentage
     percent = 100 * (current / float(total))
     filled_length = int(50 * current // total)
     bar = '█' * filled_length + '░' * (50 - filled_length)
     
-    # 计算速度和ETA
+    # Calculate speed and ETA
     elapsed = time.time() - start_time
     if current > 0:
         rate = current / elapsed
@@ -155,38 +152,38 @@ def print_progress_bar(current, total, success, fail, start_time, prefix='Progre
         eta_str = "calculating..."
         speed_str = "0 routes/s"
     
-    # 统计信息
+    # Statistics
     stats = f"✓{success} ✗{fail}"
     
-    # 打印进度条（使用 \r 覆盖同一行）
+    # Print progress bar (use \r to overwrite same line)
     sys.stdout.write(f'\r   {prefix}: |{bar}| {percent:.1f}% ({current}/{total}) {stats} | Speed: {speed_str} | ETA: {eta_str}')
     sys.stdout.flush()
 
 def get_osrm_route(source_coords, via_coords, dest_coords, route_id):
     """
-    获取经过三点的OSRM路径
+    Get OSRM route path through three points
     
     Args:
-        source_coords: [lon, lat] 起点
-        via_coords: [lon, lat] 经过点
-        dest_coords: [lon, lat] 终点
-        route_id: 路线ID用于缓存
+        source_coords: [lon, lat] origin point
+        via_coords: [lon, lat] via point
+        dest_coords: [lon, lat] destination point
+        route_id: route ID for caching
     
     Returns:
         {
-            'path': [[lon, lat], ...],  # 路径坐标
-            'distance_km': float,        # 距离（公里）
-            'duration_hours': float      # 时长（小时）
+            'path': [[lon, lat], ...],  # route coordinates
+            'distance_km': float,        # distance in km
+            'duration_hours': float      # duration in hours
         }
-        或 None（失败时）
+        or None if failed
     """
-    # 检查缓存
+    # Check cache
     cache_key = f"{route_id}"
     if cache_key in ROUTE_CACHE:
         return ROUTE_CACHE[cache_key]
     
     try:
-        # 构建OSRM请求
+        # Build OSRM request
         coords_str = f"{source_coords[0]},{source_coords[1]};{via_coords[0]},{via_coords[1]};{dest_coords[0]},{dest_coords[1]}"
         url = f"http://router.project-osrm.org/route/v1/driving/{coords_str}"
         params = {
@@ -202,11 +199,11 @@ def get_osrm_route(source_coords, via_coords, dest_coords, route_id):
                 route = data['routes'][0]
                 result = {
                     'path': route['geometry']['coordinates'],
-                    'distance_km': route['distance'] / 1000,  # 米转公里
-                    'duration_hours': route['duration'] / 3600  # 秒转小时
+                    'distance_km': route['distance'] / 1000,  # meters to km
+                    'duration_hours': route['duration'] / 3600  # seconds to hours
                 }
                 
-                # 缓存结果
+                # Cache result
                 ROUTE_CACHE[cache_key] = result
                 return result
         
@@ -343,14 +340,14 @@ def create_routes_with_rural_urban(df, min_flows=1):
     
     routes = []
     
-    # === 按三点路线聚合: 以坐标为准（名字可重复）===
-    # 坐标舍入到小数点后1位（约11公里精度），聚合附近的点
+    # Aggregate by three-point routes: based on coordinates (names can be duplicated)
+    # Round coordinates to 1 decimal place (~11km precision), aggregate nearby points
     
     # Add city to grouping (using fillna to handle missing values)
     df['city_grouped'] = df['city'].fillna('direct')
     
     # Round coordinates for aggregation (1 decimal place ≈ 11km precision)
-    # 更激进的聚合，减少更多路线
+    # More aggressive aggregation to reduce route count
     df['src_x_rounded'] = df['Source x'].round(1)
     df['src_y_rounded'] = df['Source y'].round(1)
     df['dest_x_rounded'] = df['Destination x'].round(1)
@@ -371,13 +368,13 @@ def create_routes_with_rural_urban(df, min_flows=1):
         if len(route_df) < min_flows:
             continue
         
-        # 使用舍入后的坐标（作为唯一标识）
+        # Use rounded coordinates as unique identifier
         src_x = src_x_rounded
         src_y = src_y_rounded
         dest_x = dest_x_rounded
         dest_y = dest_y_rounded
         
-        # 获取名字（取众数，因为同一坐标可能有多个名字）
+        # Get names (use mode, as same coordinates may have multiple names)
         source_name = route_df['source_nam'].mode()[0] if len(route_df['source_nam'].mode()) > 0 else 'Unknown'
         dest_name = route_df['destination_name'].mode()[0] if len(route_df['destination_name'].mode()) > 0 else 'Unknown'
         
@@ -454,7 +451,6 @@ def create_routes_with_rural_urban(df, min_flows=1):
         source_is_urban = route_df['source_wit'].mode()[0] if len(route_df['source_wit'].mode()) > 0 else 'no'
         dest_is_urban = route_df['destination_within_urban_boundary'].mode()[0] if len(route_df['destination_within_urban_boundary'].mode()) > 0 else 'no'
         
-        # Build route object (source_name和dest_name已经从groupby key中获取)
         route = {
             'source': {
                 'name': str(source_name),
@@ -535,7 +531,7 @@ def create_hierarchical_data_by_year(df):
     city_coords_lookup = build_city_coordinates_lookup(df)
     
     # Round coordinates for aggregation (1 decimal place ≈ 11km precision)
-    # 更激进的聚合，减少更多路线
+    # More aggressive aggregation to reduce route count
     df['src_x_rounded'] = df['Source x'].round(1)
     df['src_y_rounded'] = df['Source y'].round(1)
     df['dest_x_rounded'] = df['Destination x'].round(1)
@@ -657,7 +653,7 @@ def main():
     skip_prompt = '--skip-prompt' in sys.argv or '--yes' in sys.argv or '-y' in sys.argv
     
     # Check if food_flows_by_year.json already exists
-    hierarchical_file = 'food_flows_by_year_round1.json'  # round(1) = 11km精度
+    hierarchical_file = 'food_flows_by_year_round1.json'  # round(1) = 11km precision
     temp_file = 'food_flows_by_year_round1_temp.json'
     
     # Priority 1: Check for existing hierarchical data (skip data processing)
@@ -806,7 +802,7 @@ def main():
         print("\n3. Creating Hierarchical Data Structure by Year")
         hierarchical_data = create_hierarchical_data_by_year(df_with_types)
     
-    # OSRM路径获取 (可选)
+    # OSRM path fetching (optional)
     import sys
     use_osrm = '--osrm' in sys.argv
     top_100_only = '--top100' in sys.argv
@@ -815,7 +811,7 @@ def main():
         print("\n3. Fetching OSRM Real Route Paths...")
         load_route_cache()
         
-        # 加载之前的进度
+        # Load previous progress
         previous_progress = load_progress()
         start_from = 0
         if previous_progress:
@@ -823,7 +819,7 @@ def main():
             if response.lower() == 'y':
                 start_from = previous_progress['processed']
         
-        # 选择要处理的routes
+        # Select routes to process
         if top_100_only:
             routes_to_process = sorted(all_routes, key=lambda x: x['flows'], reverse=True)[:100]
             print(f"   Processing TOP 100 routes only")
@@ -833,7 +829,7 @@ def main():
         
         success_count = 0
         fail_count = 0
-        batch_size = 50  # 每50个保存一次缓存和中间结果
+        batch_size = 50  # Save cache and intermediate results every 50 routes
         idx = start_from  # Initialize idx for error handling
         start_time = time.time()
         
@@ -843,22 +839,20 @@ def main():
         
         try:
             for idx, route in enumerate(routes_to_process, 1):
-                # 跳过已处理的
+                # Skip already processed routes
                 if idx <= start_from:
-                    # 检查是否已有path数据
                     if 'path' in route:
                         success_count += 1
                     continue
                 
-                # ✅ 关键修复：跳过已有路径的路线
+                # Skip routes that already have paths
                 if 'path' in route and route['path']:
                     success_count += 1
                     print_progress_bar(idx, len(routes_to_process), success_count, fail_count, start_time, 'OSRM')
                     continue
                 
-                # 只处理有via_city的路线
+                # Only process routes with via_city
                 if 'via_city' not in route or not route['via_city'] or not route['via_city'].get('coordinates'):
-                    # 显示进度条（跳过此路线）
                     print_progress_bar(idx, len(routes_to_process), success_count, fail_count, start_time, 'OSRM')
                     continue
                 
@@ -867,36 +861,36 @@ def main():
                 dest_coords = route['destination']['coordinates']
                 route_id = f"{route['source']['name']}-{route['via_city']['name']}-{route['destination']['name']}"
                 
-                # 获取OSRM路径
+                # Get OSRM route path
                 osrm_result = get_osrm_route(source_coords, via_coords, dest_coords, route_id)
                 
                 if osrm_result:
-                    # 简化路径：从平均 2919 点减少到 ~50 点
+                    # Simplify path: reduce from avg 2919 points to ~50 points
                     original_points = len(osrm_result['path'])
                     simplified_path = simplify_path(osrm_result['path'], epsilon=0.001)
                     
                     route['path'] = simplified_path
                     route['distance_km'] = osrm_result['distance_km']
                     route['duration_hours'] = osrm_result['duration_hours']
-                    route['path_points_original'] = original_points  # 记录原始点数
+                    route['path_points_original'] = original_points
                     route['path_points_simplified'] = len(simplified_path)
                     success_count += 1
                 else:
-                    # 失败时保留直线（不添加path字段，前端会fallback到ArcLayer）
+                    # On failure, keep straight line (no path field, frontend will fallback to ArcLayer)
                     fail_count += 1
                 
-                # 更新进度条
+                # Update progress bar
                 print_progress_bar(idx, len(routes_to_process), success_count, fail_count, start_time, 'OSRM')
                 
-                # 分批保存缓存、进度和中间结果
+                # Save cache, progress and intermediate results in batches
                 if idx % batch_size == 0:
-                    print()  # 新行
+                    print()  # New line
                     save_route_cache()
                     save_progress(idx, len(routes_to_process), route_id)
                     save_intermediate_results(hierarchical_data)
                     print(f"   💾 Checkpoint saved at {idx}/{len(routes_to_process)}")
                 
-                # 限流：每次请求间隔0.1秒
+                # Rate limiting: 0.1s interval between requests
                 time.sleep(0.1)
         
         except KeyboardInterrupt:
@@ -925,15 +919,15 @@ def main():
             print(f"   ✓ Progress saved to resume later")
             raise
         
-        # 完成后显示最终进度条
+        # Show final progress bar after completion
         print_progress_bar(len(routes_to_process), len(routes_to_process), success_count, fail_count, start_time, 'OSRM')
-        print()  # 新行
+        print()  # New line
         
-        # 最后保存一次
+        # Final save
         save_route_cache()
         save_progress(len(routes_to_process), len(routes_to_process), 'completed')
         
-        # 计算总耗时
+        # Calculate total time
         total_time = time.time() - start_time
         total_time_str = str(timedelta(seconds=int(total_time)))
         
@@ -947,12 +941,12 @@ def main():
         print(f"   🚀 Average Speed: {len(routes_to_process)/total_time:.2f} routes/s")
         print(f"   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         
-        # 完成后清理进度文件
+        # Clean up progress file after completion
         if os.path.exists(PROGRESS_FILE):
             os.remove(PROGRESS_FILE)
             print(f"   ✓ Progress tracking completed, removed {PROGRESS_FILE}")
         
-        # 重要：将 OSRM 路径数据同步到 hierarchical_data
+        # Important: Sync OSRM path data to hierarchical_data
         print(f"\n   Updating hierarchical data with OSRM paths...")
         paths_added = 0
         total_points_before = 0
@@ -961,7 +955,7 @@ def main():
         for route in all_routes:
             if 'path' in route and route['path']:
                 # Find this route in hierarchical_data and add path
-                # 使用 round(1) 与聚合精度保持一致
+                # Use round(1) consistent with aggregation precision
                 src_x = round(route['source']['coordinates'][0], 1)
                 src_y = round(route['source']['coordinates'][1], 1)
                 dest_x = round(route['destination']['coordinates'][0], 1)
@@ -984,7 +978,7 @@ def main():
                         hierarchical_data[year_str][route_id]['duration_hours'] = route.get('duration_hours')
                         paths_added += 1
                         
-                        # 统计简化效果
+                        # Track simplification effect
                         if 'path_points_original' in route:
                             total_points_before += route['path_points_original']
                             total_points_after += route['path_points_simplified']
@@ -994,12 +988,11 @@ def main():
             reduction = (1 - total_points_after / total_points_before) * 100
             print(f"   ✓ Path simplification: {total_points_before:,} → {total_points_after:,} points ({reduction:.1f}% reduction)")
     
-    # 保存JSON文件
+    # Save JSON files
     print("\n4. Saving Final Output File")
     
     try:
         # Only save hierarchical format by year (the one we actually use)
-        # hierarchical_file already defined at the top of main()
         print(f"   Saving {hierarchical_file}...")
         with open(hierarchical_file, 'w', encoding='utf-8') as f:
             json.dump(hierarchical_data, f, indent=2, ensure_ascii=False)
@@ -1007,8 +1000,7 @@ def main():
         total_routes_hierarchical = sum(len(routes) for routes in hierarchical_data.values())
         print(f"   ✓ Saved {hierarchical_file} ({total_routes_hierarchical} routes across {len(hierarchical_data)} years)")
         
-        # 清理临时文件
-        # temp_file already defined at the top of main()
+        # Clean up temporary files
         if os.path.exists(temp_file):
             os.remove(temp_file)
             print(f"   ✓ Cleaned up temporary file")
